@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: zylo-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: erp_portal
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: zylo123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: zylo-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+  api:
+    build:
+      context: ./erp-backend   # ⚠️ ISSO ERA O ERRO
+      dockerfile: Dockerfile
+    container_name: zylo-erp-api
+    restart: no
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/erp_portal
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: zylo123
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
