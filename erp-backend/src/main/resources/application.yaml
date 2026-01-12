@@ -20,7 +20,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate # validate = Flyway controla, não deixe create/update!
-    show-sql: true # Mostra SQL no console (desabilitar em produção)
+    show-sql: false # Mostra SQL no console (desabilitar em produção)
     properties:
       hibernate:
         format_sql: true # Formata SQL no console
@@ -37,6 +37,7 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
     validate-on-migrate: true
+    clean-disable: true
 
   # Configuração do Jackson (JSON)
 
@@ -60,9 +61,9 @@ spring:
 
 # Configuração do Servidor
 server:
-  port: 8080
+  port: 8081
   servlet:
-    context-path: /api
+    context-path: /v2
 
 # Configurações de Logging
 logging:
@@ -88,7 +89,7 @@ jwt:
 # Configuração da Documentação da API (Swagger/OpenAPI)
 springdoc:
   api-docs:
-    path: /api-docs
+    path: /v2-docs
     enabled: true
   swagger-ui:
     path: /swagger-ui.html

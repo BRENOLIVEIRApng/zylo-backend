@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DiffGenerationConfig">
+    <option name="sourceDbValue" value="3b8f7832-4b14-4c26-b619-7f698c8223eb" />
+    <option name="sourceModelValue" value="erp-backend:erp-backend" />
+    <option name="targetDbValue" value="3b8f7832-4b14-4c26-b619-7f698c8223eb__erp_portal_public" />
+  </component>
+</project>
