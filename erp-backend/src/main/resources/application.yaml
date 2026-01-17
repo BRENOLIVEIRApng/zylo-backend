@@ -1,14 +1,14 @@
 spring:
   application:
     name: zylo-erp
-  # Configuração do Banco de Dados PostgreSQL
+
+  # Configuração do Banco de Dados (Recebe valores do Docker Environment)
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-    # Pool de Conexões HikariCP (otimizado)
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -16,22 +16,16 @@ spring:
       idle-timeout: 600000
       max-lifetime: 1800000
 
-  # Configuração JPA/Hibernate
   jpa:
     hibernate:
-      ddl-auto: validate # validate = Flyway controla, não deixe create/update!
-    show-sql: false # Mostra SQL no console (desabilitar em produção)
+      ddl-auto: validate
+    show-sql: true # Útil ver o SQL no console para estudo
     properties:
       hibernate:
-        format_sql: true # Formata SQL no console
+        format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        jdbc:
-          batch_size: 20 # Otimização de inserts em lote
-        order_inserts: true
-        order_updates: true
-    open-in-view: false # Evita lazy loading fora da transação
+    open-in-view: false
 
-  # Flyway - Migrations de Banco
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -39,108 +33,54 @@ spring:
     validate-on-migrate: true
     clean-disable: true
 
-  # Configuração do Jackson (JSON)
-
   jackson:
-    write-dates-as-timestamps: false
     time-zone: America/Sao_Paulo
-    default-property-inclusion: non_null
     deserialization:
       fail-on-unknown-properties: false
 
-
-  # DevTools (Hot Reload em desenvolvimento)
-  devtools:
-    restart:
-      enabled: false
-    livereload:
-      enabled: true
-  web:
-    error:
-      include-exception: false
-
-# Configuração do Servidor
+  # Configuração do Servidor
 server:
-  port: 8081
-  servlet:
-    context-path: /v2
+  port: 8080 # ALINHADO COM O DOCKER
+  # servlet:
+  #   context-path: /v2  <-- Removido para simplificar URLs de acesso
 
-# Configurações de Logging
+# Logging
 logging:
   level:
     root: INFO
     com.zyloerp: DEBUG
-    org.springframework.web: INFO
-    org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE # Ver valores nos queries
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/erp-portal.log
+    console: "%d{HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
-# Configurações JWT (Token de Autenticação)
+# Segurança Simplificada
 jwt:
-  secret: "SuaChaveSecretaMuitoSeguraComPeloMenos256BitsParaHS256AlgorithmFuncionarCorretamente"
-  expiration: 28800000 # 8 horas em milissegundos (8 * 60 * 60 * 1000)
+  # Chave simples para estudo (Base64 encoded "segredo123" para evitar erro de parse)
+  secret: "c2VncmVkb211aXRvc2VndXJvcGFyYWVzdHVkYXJqYXZhc3ByaW5nYm9vdA=="
+  expiration: 86400000 # 24 horas (para não expirar durante seus testes)
   issuer: "Zylo ERP"
 
-# Configuração da Documentação da API (Swagger/OpenAPI)
 springdoc:
   api-docs:
-    path: /v2-docs
-    enabled: true
+    path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
-    enabled: true
     operations-sorter: method
-    tags-sorter: alpha
-    display-request-duration: true
-    doc-expansion: none # Mantém endpoints fechados por padrão
-  show-actuator: false
 
-# Configurações Customizadas da Aplicação
 app:
-  name: "Zylo ERP - Software House"
+  name: "Zylo ERP - Study"
   version: "1.0.0"
-  description: "Sistema de Gestão Modular para Software Houses"
 
-  # Configurações de Segurança
   security:
-    allowed-origins:
-      - "http://localhost:3000"
-      - "http://localhost:8080"
-      - "http://127.0.0.1:5500" # Live Server do VS Code
+    allowed-origins: "*" # Libera tudo para facilitar testes locais
 
-  # Configurações de Faturamento
-  faturamento:
-    dia-geracao: 1 # Dia do mês para gerar faturas (1 a 28)
-    dia-vencimento-padrao: 10 # Vencimento padrão (dias após emissão)
-
-  # Configurações de Upload
   upload:
-    max-file-size: 5MB
+    max-file-size: 10MB
     max-request-size: 10MB
-    allowed-extensions:
-      - pdf
-      - jpg
-      - png
-      - jpeg
-      - doc
-      - docx
-      - xls
-      - xlsx
 
 ---
-# Profile de DESENVOLVIMENTO (ativo por padrão)
+# Profile específico para quando roda no Docker
 spring:
   config:
     activate:
-      on-profile: dev
-
-# Sobrescreve configurações específicas de DEV
-logging:
-  level:
-    com.zyloerp: DEBUG
-
+      on-profile: docker

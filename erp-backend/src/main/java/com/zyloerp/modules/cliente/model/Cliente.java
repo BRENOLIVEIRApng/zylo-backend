@@ -1,8 +1,13 @@
 package com.zyloerp.modules.cliente.model;
 
 import com.zyloerp.core.entity.BaseEntity;
+import com.zyloerp.modules.contrato.model.Contrato;
+import com.zyloerp.shared.enums.StatusCliente;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "clientes")
@@ -24,17 +29,12 @@ public class Cliente extends BaseEntity {
     @Column(name = "nome_fantasia", length = 200)
     private String nomeFantasia;
 
-    /**
-     * CNPJ formatado: 00.000.000/0000-00
-     * Único entre clientes ativos (índice parcial no banco).
-     */
     @Column(name = "cnpj", nullable = false, unique = true, length = 18)
     private String cnpj;
 
     @Column(name = "inscricao_estadual", length = 20)
     private String inscricaoEstadual;
 
-    // ENDEREÇO
     @Column(name = "cep", length = 10)
     private String cep;
 
@@ -56,53 +56,18 @@ public class Cliente extends BaseEntity {
     @Column(name = "estado", length = 2)
     private String estado;
 
-    /**
-     * Status do cliente: ATIVO, SUSPENSO, ENCERRADO
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "status_cliente", nullable = false, length = 20)
     @Builder.Default
     private StatusCliente statusCliente = StatusCliente.ATIVO;
 
-    /**
-     * Contatos do cliente.
-     * Carregamento LAZY para não trazer sempre (só quando necessário).
-     */
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ContatoCliente> contatos = new ArrayList<>();
 
-    /**
-     * Contratos do cliente.
-     */
     @OneToMany(mappedBy = "cliente")
     @Builder.Default
     private List<Contrato> contratos = new ArrayList<>();
-
-    /**
-     * Status do cliente: ATIVO, SUSPENSO, ENCERRADO
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status_cliente", nullable = false, length = 20)
-    @Builder.Default
-    private StatusCliente statusCliente = StatusCliente.ATIVO;
-
-    /**
-     * Contatos do cliente.
-     * Carregamento LAZY para não trazer sempre (só quando necessário).
-     */
-    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ContatoCliente> contatos = new ArrayList<>();
-
-    /**
-     * Contratos do cliente.
-     */
-    @OneToMany(mappedBy = "cliente")
-    @Builder.Default
-    private List<Contrato> contratos = new ArrayList<>();
-
-    // MÉTODOS DE NEGÓCIO
 
     public void adicionarContato(ContatoCliente contato) {
         contatos.add(contato);
@@ -135,11 +100,5 @@ public class Cliente extends BaseEntity {
 
     public void encerrar() {
         this.statusCliente = StatusCliente.ENCERRADO;
-    }
-
-    enum StatusCliente {
-        ATIVO,      // Cliente operando normalmente
-        SUSPENSO,   // Temporariamente inativo (sem novos contratos)
-        ENCERRADO   // Relação comercial finalizada
     }
 }

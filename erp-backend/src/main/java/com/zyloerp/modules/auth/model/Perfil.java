@@ -2,6 +2,7 @@ package com.zyloerp.modules.auth.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;

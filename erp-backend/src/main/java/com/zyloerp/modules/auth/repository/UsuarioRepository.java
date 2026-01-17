@@ -27,29 +27,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
             "WHERE u.excluidoEm IS NULL")
     List<Usuario> findAllAtivosComPermissoes();
 
-    /**
-     * JPQL QUERY com parâmetro: Busca usuários por perfil.
-     *
-     * @param codigoPerfil Código do perfil
-     * @return Lista de usuários
-     */
     @Query("SELECT u FROM Usuario u WHERE u.perfil.codigoPerfil = :codigoPerfil AND u.excluidoEm IS NULL")
     List<Usuario> findByPerfil(@Param("codigoPerfil") Long codigoPerfil);
 
-    /**
-     * DERIVED QUERY: Busca por nome contendo texto (LIKE).
-     *
-     * @param nome Parte do nome a buscar
-     * @return Lista de usuários
-     */
     List<Usuario> findByNomeCompletoContainingIgnoreCaseAndExcluidoEmIsNull(String nome);
 
-    /**
-     * JPQL QUERY: Busca usuários ativos ou inativos.
-     *
-     * @param ativo true = ativos, false = inativos
-     * @return Lista de usuários
-     */
     @Query("SELECT u FROM Usuario u WHERE u.ativo = :ativo AND u.excluidoEm IS NULL")
     List<Usuario> findByAtivo(@Param("ativo") Boolean ativo);
 }

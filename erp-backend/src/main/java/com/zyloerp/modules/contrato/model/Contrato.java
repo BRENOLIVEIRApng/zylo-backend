@@ -2,14 +2,15 @@ package com.zyloerp.modules.contrato.model;
 
 import com.zyloerp.core.entity.BaseEntity;
 import com.zyloerp.modules.cliente.model.Cliente;
-import com.zyloerp.modules.servico.model.Servico;
 import com.zyloerp.shared.enums.StatusContrato;
+import com.zyloerp.shared.enums.TipoContrato;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "contratos")
@@ -25,18 +26,18 @@ public class Contrato extends BaseEntity {
     @Column(name = "codigo_contrato")
     private Long codigoContrato;
 
-    @Column(name = "numero_contrato", unique = true, nullable = false)
+    @Column(name = "numero_contrato", unique = true, length = 20)
     private String numeroContrato;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @Column(name = "codigo_cliente", nullable = false)
+    @JoinColumn(name = "codigo_cliente", nullable = false)
     private Cliente cliente;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_contrato", nullable = false, length = 20)
+    @Column(name = "tipo_contrato", nullable = false, length = 30)
     private TipoContrato tipoContrato;
 
-    @Column(name = "valor_hora", nullable = false, precision = 10, scale = 2)
+    @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorTotal;
 
     @Column(name = "data_inicio", nullable = false)
@@ -46,7 +47,7 @@ public class Contrato extends BaseEntity {
     private LocalDate dataFim;
 
     @Column(name = "duracao_meses")
-    private Integer duracaoMes;
+    private Integer duracaoMeses;
 
     @Column(name = "sla_horas")
     private Integer slaHoras;
@@ -54,7 +55,7 @@ public class Contrato extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status_contrato", nullable = false, length = 20)
     @Builder.Default
-    private StatusContrato statusContrato;
+    private StatusContrato statusContrato = StatusContrato.ATIVO;
 
     @Column(name = "observacoes", columnDefinition = "TEXT")
     private String observacoes;
@@ -63,46 +64,33 @@ public class Contrato extends BaseEntity {
     @Builder.Default
     private Set<ContratoServico> servicos = new HashSet<>();
 
-    public void adicionarServico(ContratoServico contratoServico){
+    public void adicionarServico(ContratoServico contratoServico) {
         servicos.add(contratoServico);
         contratoServico.setContrato(this);
     }
 
-    public void removerServico(ContratoServico contratoServico){
-        servicos.remove(ContratoServico);
-        contratoServico.setContrato(this);
+    public void removerServico(ContratoServico contratoServico) {
+        servicos.remove(contratoServico);
+        contratoServico.setContrato(null);
     }
 
-    public boolean isAtivo(){
+    public boolean isAtivo() {
         return this.statusContrato == StatusContrato.ATIVO;
     }
 
-    public void suspender(){
+    public void suspender() {
         this.statusContrato = StatusContrato.SUSPENSO;
     }
 
-    public void reativar(){
+    public void reativar() {
         this.statusContrato = StatusContrato.ATIVO;
     }
 
-    public void encerrar(){
+    public void encerrar() {
         this.statusContrato = StatusContrato.ENCERRADO;
     }
 
-    public void cancelar(){
+    public void cancelar() {
         this.statusContrato = StatusContrato.CANCELADO;
     }
-}
-
-enum TipoContrato {
-    MENSALIDADE,
-    PROJETO_FECHADO,
-    HORAS_CONTRATADAS
-}
-
-enum StatusContrato {
-    ATIVO,
-    SUSPENSO,
-    ENCERRADO,
-    CANCELADO
 }

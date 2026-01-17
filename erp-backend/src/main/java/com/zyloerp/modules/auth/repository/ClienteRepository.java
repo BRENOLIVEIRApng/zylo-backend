@@ -1,7 +1,7 @@
 package com.zyloerp.modules.auth.repository;
 
 import com.zyloerp.modules.cliente.model.Cliente;
-import com.zyloerp.modules.cliente.model.StatusCliente;
+import com.zyloerp.shared.enums.StatusCliente;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

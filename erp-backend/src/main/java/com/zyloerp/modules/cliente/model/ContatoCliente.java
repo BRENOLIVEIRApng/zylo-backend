@@ -40,4 +40,8 @@ public class ContatoCliente {
     @Column(name = "ativo", nullable = false)
     @Builder.Default
     private boolean ativo = true;
+
+    public boolean getPrincipal(){
+        return false;
+    }
 }

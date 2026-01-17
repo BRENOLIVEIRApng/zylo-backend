@@ -1,7 +1,7 @@
 package com.zyloerp.modules.auth.repository;
 
 import com.zyloerp.modules.contrato.model.Contrato;
-import com.zyloerp.modules.contrato.model.StatusContrato;
+import com.zyloerp.shared.enums.StatusContrato;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -28,9 +28,6 @@ public class ContratoServico {
     @JoinColumn(name = "codigo_servico", nullable = false)
     private Servico servico;
 
-    /**
-     * Valor do serviço NESTE contrato (pode ser diferente do valor_base).
-     */
     @Column(name = "valor_servico", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorServico;
 
