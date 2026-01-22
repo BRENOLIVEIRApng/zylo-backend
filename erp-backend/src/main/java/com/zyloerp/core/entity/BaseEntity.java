@@ -42,7 +42,7 @@ public  abstract class BaseEntity {
     private Long excluidoPor;
 
     public boolean isExcluidoEm() {
-        return this.excluidoEm != null;
+        return this.excluidoEm == null;
     }
 
     public void reativar(){ //Não salva diretamente no banco, precisa chamar repository.save()

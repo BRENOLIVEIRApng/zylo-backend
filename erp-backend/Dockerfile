@@ -1,31 +1,30 @@
 # =========================
-# BUILD
+# STAGE 1 - BUILD
 # =========================
-FROM eclipse-temurin:25-jdk AS build
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
-# Maven Wrapper
-COPY mvnw .
-COPY .mvn .mvn
+# Copia apenas o pom primeiro (cache de dependências)
 COPY pom.xml .
+RUN mvn dependency:go-offline
 
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+# Copia o código fonte
+COPY src ./src
 
-# Código fonte
-COPY src src
-
-RUN ./mvnw clean package -DskipTests
+# Build do projeto
+RUN mvn clean package -DskipTests
 
 
 # =========================
-# RUNTIME
+# STAGE 2 - RUNTIME
 # =========================
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
-COPY --from=build /app/target/erp-backend-0.0.1-SNAPSHOT.jar app.jar
+# Copia o JAR gerado no build
+COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
 

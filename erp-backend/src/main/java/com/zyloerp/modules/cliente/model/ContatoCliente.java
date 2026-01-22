@@ -37,6 +37,10 @@ public class ContatoCliente {
     @Column(name = "cargo", length = 100)
     private String cargo;
 
+    @Column(name = "principal")
+    @Builder.Default
+    private boolean principal = false;
+
     @Column(name = "ativo", nullable = false)
     @Builder.Default
     private boolean ativo = true;

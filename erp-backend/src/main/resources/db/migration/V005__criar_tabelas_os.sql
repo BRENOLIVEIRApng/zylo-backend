@@ -43,7 +43,7 @@ CREATE INDEX idx_os_kanban ON ordens_servico(status_os, prioridade, data_abertur
 
 -- Índice para OS críticas (SLA próximo)
 CREATE INDEX idx_os_sla_critico ON ordens_servico(data_limite)
-    WHERE status_os IN ('ABERTA', 'EM_ANDAMENTO') AND data_limite < CURRENT_TIMESTAMP + INTERVAL '4 hours';
+    WHERE status_os IN ('ABERTA', 'EM_ANDAMENTO') AND data_limite IS NOT NULL;
 
 -- Índice para "Minhas OS" (por responsável)
 CREATE INDEX idx_os_responsavel_status ON ordens_servico(codigo_responsavel, status_os);

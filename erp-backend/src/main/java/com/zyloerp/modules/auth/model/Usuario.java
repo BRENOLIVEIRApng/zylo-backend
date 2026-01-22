@@ -77,7 +77,7 @@ public class Usuario extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return !this.isExcluidoEm();
+        return this.isExcluidoEm();
     }
 
     @Override
@@ -87,7 +87,7 @@ public class Usuario extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.ativo && !this.isExcluidoEm();
+        return this.ativo && this.isExcluidoEm();
     }
 
     public boolean temPermissao(String modulo, String acao) {

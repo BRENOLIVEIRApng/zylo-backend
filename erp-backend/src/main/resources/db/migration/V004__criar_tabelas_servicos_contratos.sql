@@ -101,6 +101,8 @@ CREATE TABLE contratos (
                            criado_por              BIGINT NOT NULL,
                            atualizado_em           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
                            atualizado_por          BIGINT NOT NULL,
+                           excluido_em             TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                           excluido_por            BIGINT NOT NULL,
 
     -- Foreign Keys
                            CONSTRAINT fk_contratos_cliente

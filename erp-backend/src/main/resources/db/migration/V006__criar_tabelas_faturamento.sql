@@ -42,7 +42,7 @@ CREATE INDEX idx_faturas_emissao ON faturas(data_emissao DESC);
 -- Índice para faturas atrasadas
 CREATE INDEX idx_faturas_atrasadas
     ON faturas(data_vencimento)
-    WHERE status_fatura IN ('PENDENTE', 'ATRASADO') AND data_vencimento < CURRENT_DATE;
+    WHERE status_fatura IN ('PENDENTE', 'ATRASADO') AND data_vencimento IS NOT NULL;
 
 -- Índice para faturamento mensal
 CREATE INDEX idx_faturas_periodo ON faturas(data_emissao, data_vencimento);

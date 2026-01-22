@@ -24,7 +24,7 @@ CREATE TABLE clientes (
                           complemento             VARCHAR(100),
                           bairro                  VARCHAR(100),
                           cidade                  VARCHAR(100),
-                          estado                  CHAR(2),  -- UF: SP, RJ, MG, etc
+                          estado                  VARCHAR(2),  -- UF: SP, RJ, MG, etc
 
     -- Status
                           status_cliente          VARCHAR(20) DEFAULT 'ATIVO' NOT NULL,

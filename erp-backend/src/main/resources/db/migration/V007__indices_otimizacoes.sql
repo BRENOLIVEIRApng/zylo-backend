@@ -7,8 +7,8 @@ CREATE INDEX idx_os_status_responsavel_prioridade ON ordens_servico(status_os, c
 CREATE INDEX idx_faturas_cliente_status_vencimento ON faturas(codigo_cliente, status_fatura, data_vencimento);
 
 -- Índices para relatórios
-CREATE INDEX idx_os_data_criacao_mes ON ordens_servico(EXTRACT(YEAR FROM criado_em), EXTRACT(MONTH FROM criado_em));
-CREATE INDEX idx_faturas_emissao_mes ON faturas(EXTRACT(YEAR FROM data_emissao), EXTRACT(MONTH FROM data_emissao));
+CREATE INDEX idx_os_data_criacao_mes ON ordens_servico(criado_em);
+CREATE INDEX idx_faturas_emissao_mes ON faturas(data_emissao);
 
 -- Índices de texto para busca
 CREATE INDEX idx_clientes_busca ON clientes USING gin(to_tsvector('portuguese', razao_social || ' ' || COALESCE(nome_fantasia, '')));

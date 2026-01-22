@@ -5,26 +5,25 @@ services:
   postgres:
     image: postgres:16
     container_name: zylo-postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: zylo_erp
       POSTGRES_USER: zylo
-      POSTGRES_PASSWORD: "123456" # Senha simplificada
+      POSTGRES_PASSWORD: "123456"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    # Garante que o banco está pronto antes da API subir
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U zylo -d zylo_erp"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   pgadmin:
-    image: dpage/pgadmin4:lasted
+    image: dpage/pgadmin4:latest
     container_name: zylo-pgadmin
-    restart: always
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: "admin@zylo.com"
       PGADMIN_DEFAULT_PASSWORD: "admin"
@@ -38,18 +37,17 @@ services:
       context: ./erp-backend
       dockerfile: Dockerfile
     container_name: zylo-erp-api
-    restart: on-failure # Reinicia se falhar, mas não se você parar manualmente
+    restart: "no"
     ports:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      # Conexão interna via nome do serviço 'postgres'
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/zylo_erp
       SPRING_DATASOURCE_USERNAME: zylo
       SPRING_DATASOURCE_PASSWORD: "123456"
     depends_on:
       postgres:
-        condition: service_healthy # Só inicia quando o Healthcheck do banco der OK
+        condition: service_healthy
 
 volumes:
   postgres_data:

@@ -96,9 +96,11 @@ CREATE TABLE usuarios (
 
     -- Auditoria
                           criado_em           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                          criado_por          BIGINT NOT NULL,
                           atualizado_em       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                          atualizado_por      BIGINT NOT NULL,
                           excluido_em         TIMESTAMP WITH TIME ZONE,
-                          excluido_por        BIGINT,
+                          excluido_por        BIGINT NOT NULL,
 
     -- Constraints
                           CONSTRAINT fk_usuarios_perfil
@@ -162,7 +164,7 @@ CREATE TABLE historico_acessos (
 
 -- Índices para consultas comuns
 CREATE INDEX idx_historico_usuario ON historico_acessos(codigo_usuario);
-CREATE INDEX idx_historico_data DESC ON historico_acessos(data_hora_acesso DESC);
+CREATE INDEX idx_historico_data ON historico_acessos(data_hora_acesso DESC);
 CREATE INDEX idx_historico_sucesso ON historico_acessos(sucesso) WHERE sucesso = FALSE;
 CREATE INDEX idx_historico_ip ON historico_acessos(ip_acesso);
 
