@@ -1,364 +1,364 @@
 -- =====================================================
--- V003__criar_tabelas_clientes.sql
--- Descrição: Estrutura completa de clientes (empresas B2B)
--- Autor: ERP Portal Team
--- Data: 2025-01-10
+-- V003__CRIAR_TABELAS_CLIENTES.SQL
+-- DESCRIÇÃO: ESTRUTURA COMPLETA DE CLIENTES (EMPRESAS B2B)
+-- AUTOR: ERP PORTAL TEAM
+-- DATA: 2025-01-10
 -- =====================================================
 
 -- =====================================================
--- TABELA: Clientes (Empresas)
+-- TABELA: CLIENTES (EMPRESAS)
 -- =====================================================
-CREATE TABLE clientes (
-                          codigo_cliente          BIGSERIAL PRIMARY KEY,
+CREATE TABLE CLIENTES (
+                          CODIGO_CLIENTE          BIGSERIAL PRIMARY KEY,
 
-    -- Dados Cadastrais
-                          razao_social            VARCHAR(200) NOT NULL,
-                          nome_fantasia           VARCHAR(200),
-                          cnpj                    VARCHAR(18) UNIQUE NOT NULL,  -- Formato: 00.000.000/0000-00
-                          inscricao_estadual      VARCHAR(20),
+    -- DADOS CADASTRAIS
+                          RAZAO_SOCIAL            VARCHAR(200) NOT NULL,
+                          NOME_FANTASIA           VARCHAR(200),
+                          CNPJ                    VARCHAR(18) UNIQUE NOT NULL,  -- FORMATO: 00.000.000/0000-00
+                          INSCRICAO_ESTADUAL      VARCHAR(20),
 
-    -- Endereço
-                          cep                     VARCHAR(10),
-                          logradouro              VARCHAR(200),
-                          numero_endereco         VARCHAR(20),
-                          complemento             VARCHAR(100),
-                          bairro                  VARCHAR(100),
-                          cidade                  VARCHAR(100),
-                          estado                  VARCHAR(2),  -- UF: SP, RJ, MG, etc
+    -- ENDEREÇO
+                          CEP                     VARCHAR(10),
+                          LOGRADOURO              VARCHAR(200),
+                          NUMERO_ENDERECO         VARCHAR(20),
+                          COMPLEMENTO             VARCHAR(100),
+                          BAIRRO                  VARCHAR(100),
+                          CIDADE                  VARCHAR(100),
+                          ESTADO                  VARCHAR(2),  -- UF: SP, RJ, MG, ETC
 
-    -- Status
-                          status_cliente          VARCHAR(20) DEFAULT 'ATIVO' NOT NULL,
+    -- STATUS
+                          STATUS_CLIENTE          VARCHAR(20) DEFAULT 'ATIVO' NOT NULL,
 
-    -- Auditoria Completa
-                          criado_em               TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                          criado_por              BIGINT NOT NULL,
-                          atualizado_em           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                          atualizado_por          BIGINT NOT NULL,
-                          excluido_em             TIMESTAMP WITH TIME ZONE,
-                          excluido_por            BIGINT,
+    -- AUDITORIA COMPLETA
+                          CRIADO_EM               TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                          CRIADO_POR              BIGINT NOT NULL,
+                          ATUALIZADO_EM           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                          ATUALIZADO_POR          BIGINT NOT NULL,
+                          EXCLUIDO_EM             TIMESTAMP WITH TIME ZONE,
+                          EXCLUIDO_POR            BIGINT,
 
-    -- Foreign Keys
-                          CONSTRAINT fk_clientes_criado_por
-                              FOREIGN KEY (criado_por)
-                                  REFERENCES usuarios(codigo_usuario)
+    -- FOREIGN KEYS
+                          CONSTRAINT FK_CLIENTES_CRIADO_POR
+                              FOREIGN KEY (CRIADO_POR)
+                                  REFERENCES USUARIOS(CODIGO_USUARIO)
                                   ON DELETE RESTRICT,
 
-                          CONSTRAINT fk_clientes_atualizado_por
-                              FOREIGN KEY (atualizado_por)
-                                  REFERENCES usuarios(codigo_usuario)
+                          CONSTRAINT FK_CLIENTES_ATUALIZADO_POR
+                              FOREIGN KEY (ATUALIZADO_POR)
+                                  REFERENCES USUARIOS(CODIGO_USUARIO)
                                   ON DELETE RESTRICT,
 
-                          CONSTRAINT fk_clientes_excluido_por
-                              FOREIGN KEY (excluido_por)
-                                  REFERENCES usuarios(codigo_usuario)
+                          CONSTRAINT FK_CLIENTES_EXCLUIDO_POR
+                              FOREIGN KEY (EXCLUIDO_POR)
+                                  REFERENCES USUARIOS(CODIGO_USUARIO)
                                   ON DELETE SET NULL,
 
-    -- Constraints de Validação
-                          CONSTRAINT chk_cliente_status CHECK (
-                              status_cliente IN ('ATIVO', 'SUSPENSO', 'ENCERRADO')
+    -- CONSTRAINTS DE VALIDAÇÃO
+                          CONSTRAINT CHK_CLIENTE_STATUS CHECK (
+                              STATUS_CLIENTE IN ('ATIVO', 'SUSPENSO', 'ENCERRADO')
                               ),
 
-                          CONSTRAINT chk_cliente_estado CHECK (
-                              estado IS NULL OR LENGTH(estado) = 2
+                          CONSTRAINT CHK_CLIENTE_ESTADO CHECK (
+                              ESTADO IS NULL OR LENGTH(ESTADO) = 2
                               ),
 
-                          CONSTRAINT chk_cliente_cnpj_formato CHECK (
-                              cnpj ~ '^\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}$'  -- Valida formato
+                          CONSTRAINT CHK_CLIENTE_CNPJ_FORMATO CHECK (
+                              CNPJ ~ '^\D{2}\.\D{3}\.\D{3}/\D{4}-\D{2}$'  -- VALIDA FORMATO
 ),
 
-    CONSTRAINT chk_cliente_razao_social_minimo CHECK (
-        LENGTH(TRIM(razao_social)) >= 3
+    CONSTRAINT CHK_CLIENTE_RAZAO_SOCIAL_MINIMO CHECK (
+        LENGTH(TRIM(RAZAO_SOCIAL)) >= 3
     ),
 
-    CONSTRAINT chk_cliente_excluido_logica CHECK (
-        (excluido_em IS NULL AND excluido_por IS NULL) OR
-        (excluido_em IS NOT NULL AND excluido_por IS NOT NULL)
+    CONSTRAINT CHK_CLIENTE_EXCLUIDO_LOGICA CHECK (
+        (EXCLUIDO_EM IS NULL AND EXCLUIDO_POR IS NULL) OR
+        (EXCLUIDO_EM IS NOT NULL AND EXCLUIDO_POR IS NOT NULL)
     )
 );
 
 -- =====================================================
--- ÍNDICES ESTRATÉGICOS - Clientes
+-- ÍNDICES ESTRATÉGICOS - CLIENTES
 -- =====================================================
 
--- Índice UNIQUE parcial: CNPJ único apenas entre clientes ativos
-CREATE UNIQUE INDEX idx_clientes_cnpj_ativo
-    ON clientes(cnpj)
-    WHERE excluido_em IS NULL;
+-- ÍNDICE UNIQUE PARCIAL: CNPJ ÚNICO APENAS ENTRE CLIENTES ATIVOS
+CREATE UNIQUE INDEX IDX_CLIENTES_CNPJ_ATIVO
+    ON CLIENTES(CNPJ)
+    WHERE EXCLUIDO_EM IS NULL;
 
--- Índices para filtros comuns
-CREATE INDEX idx_clientes_status ON clientes(status_cliente);
-CREATE INDEX idx_clientes_cidade_estado ON clientes(cidade, estado);
-CREATE INDEX idx_clientes_criado_em ON clientes(criado_em DESC);
-CREATE INDEX idx_clientes_excluido ON clientes(excluido_em) WHERE excluido_em IS NOT NULL;
+-- ÍNDICES PARA FILTROS COMUNS
+CREATE INDEX IDX_CLIENTES_STATUS ON CLIENTES(STATUS_CLIENTE);
+CREATE INDEX IDX_CLIENTES_CIDADE_ESTADO ON CLIENTES(CIDADE, ESTADO);
+CREATE INDEX IDX_CLIENTES_CRIADO_EM ON CLIENTES(CRIADO_EM DESC);
+CREATE INDEX IDX_CLIENTES_EXCLUIDO ON CLIENTES(EXCLUIDO_EM) WHERE EXCLUIDO_EM IS NOT NULL;
 
--- Índice para busca textual (nome/razão social)
-CREATE INDEX idx_clientes_razao_social_lower ON clientes(LOWER(razao_social));
-CREATE INDEX idx_clientes_nome_fantasia_lower ON clientes(LOWER(nome_fantasia)) WHERE nome_fantasia IS NOT NULL;
+-- ÍNDICE PARA BUSCA TEXTUAL (NOME/RAZÃO SOCIAL)
+CREATE INDEX IDX_CLIENTES_RAZAO_SOCIAL_LOWER ON CLIENTES(LOWER(RAZAO_SOCIAL));
+CREATE INDEX IDX_CLIENTES_NOME_FANTASIA_LOWER ON CLIENTES(LOWER(NOME_FANTASIA)) WHERE NOME_FANTASIA IS NOT NULL;
 
--- Índice composto para listagem padrão (status + nome)
-CREATE INDEX idx_clientes_listagem ON clientes(status_cliente, razao_social);
+-- ÍNDICE COMPOSTO PARA LISTAGEM PADRÃO (STATUS + NOME)
+CREATE INDEX IDX_CLIENTES_LISTAGEM ON CLIENTES(STATUS_CLIENTE, RAZAO_SOCIAL);
 
--- Índice para auditoria (quem criou/atualizou)
-CREATE INDEX idx_clientes_auditoria ON clientes(criado_por, atualizado_por);
-
--- =====================================================
--- COMENTÁRIOS - Clientes
--- =====================================================
-COMMENT ON TABLE clientes IS
-'Cadastro de empresas clientes (B2B) da software house';
-
-COMMENT ON COLUMN clientes.status_cliente IS
-'ATIVO: operando normalmente | SUSPENSO: temporariamente inativo (sem novos contratos) | ENCERRADO: relação comercial finalizada';
-
-COMMENT ON COLUMN clientes.cnpj IS
-'CNPJ formatado (00.000.000/0000-00). Único entre clientes ativos.';
-
-COMMENT ON COLUMN clientes.excluido_em IS
-'Soft delete: data/hora da exclusão. NULL = registro ativo';
+-- ÍNDICE PARA AUDITORIA (QUEM CRIOU/ATUALIZOU)
+CREATE INDEX IDX_CLIENTES_AUDITORIA ON CLIENTES(CRIADO_POR, ATUALIZADO_POR);
 
 -- =====================================================
--- TABELA: Contatos do Cliente
+-- COMENTÁRIOS - CLIENTES
 -- =====================================================
-CREATE TABLE contatos_cliente (
-                                  codigo_contato          BIGSERIAL PRIMARY KEY,
-                                  codigo_cliente          BIGINT NOT NULL,
+COMMENT ON TABLE CLIENTES IS
+'CADASTRO DE EMPRESAS CLIENTES (B2B) DA SOFTWARE HOUSE';
 
-    -- Dados do Contato
-                                  nome_contato            VARCHAR(100) NOT NULL,
-                                  email_contato           VARCHAR(100),
-                                  telefone                VARCHAR(20),
-                                  celular                 VARCHAR(20),
-                                  cargo                   VARCHAR(100),
+COMMENT ON COLUMN CLIENTES.STATUS_CLIENTE IS
+'ATIVO: OPERANDO NORMALMENTE | SUSPENSO: TEMPORARIAMENTE INATIVO (SEM NOVOS CONTRATOS) | ENCERRADO: RELAÇÃO COMERCIAL FINALIZADA';
 
-    -- Flags
-                                  principal               BOOLEAN DEFAULT FALSE NOT NULL,
-                                  ativo                   BOOLEAN DEFAULT TRUE NOT NULL,
+COMMENT ON COLUMN CLIENTES.CNPJ IS
+'CNPJ FORMATADO (00.000.000/0000-00). ÚNICO ENTRE CLIENTES ATIVOS.';
 
-    -- Auditoria Básica
-                                  criado_em               TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                  atualizado_em           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+COMMENT ON COLUMN CLIENTES.EXCLUIDO_EM IS
+'SOFT DELETE: DATA/HORA DA EXCLUSÃO. NULL = REGISTRO ATIVO';
 
-    -- Foreign Keys
-                                  CONSTRAINT fk_contatos_cliente
-                                      FOREIGN KEY (codigo_cliente)
-                                          REFERENCES clientes(codigo_cliente)
-                                          ON DELETE CASCADE,  -- Se cliente é excluído, contatos também são
+-- =====================================================
+-- TABELA: CONTATOS DO CLIENTE
+-- =====================================================
+CREATE TABLE CONTATOS_CLIENTE (
+                                  CODIGO_CONTATO          BIGSERIAL PRIMARY KEY,
+                                  CODIGO_CLIENTE          BIGINT NOT NULL,
 
-    -- Constraints
-                                  CONSTRAINT chk_contato_nome_minimo CHECK (
-                                      LENGTH(TRIM(nome_contato)) >= 3
+    -- DADOS DO CONTATO
+                                  NOME_CONTATO            VARCHAR(100) NOT NULL,
+                                  EMAIL_CONTATO           VARCHAR(100),
+                                  TELEFONE                VARCHAR(20),
+                                  CELULAR                 VARCHAR(20),
+                                  CARGO                   VARCHAR(100),
+
+    -- FLAGS
+                                  PRINCIPAL               BOOLEAN DEFAULT FALSE NOT NULL,
+                                  ATIVO                   BOOLEAN DEFAULT TRUE NOT NULL,
+
+    -- AUDITORIA BÁSICA
+                                  CRIADO_EM               TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                  ATUALIZADO_EM           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- FOREIGN KEYS
+                                  CONSTRAINT FK_CONTATOS_CLIENTE
+                                      FOREIGN KEY (CODIGO_CLIENTE)
+                                          REFERENCES CLIENTES(CODIGO_CLIENTE)
+                                          ON DELETE CASCADE,  -- SE CLIENTE É EXCLUÍDO, CONTATOS TAMBÉM SÃO
+
+    -- CONSTRAINTS
+                                  CONSTRAINT CHK_CONTATO_NOME_MINIMO CHECK (
+                                      LENGTH(TRIM(NOME_CONTATO)) >= 3
                                       ),
 
-                                  CONSTRAINT chk_contato_email_formato CHECK (
-                                      email_contato IS NULL OR
-                                      email_contato ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+                                  CONSTRAINT CHK_CONTATO_EMAIL_FORMATO CHECK (
+                                      EMAIL_CONTATO IS NULL OR
+                                      EMAIL_CONTATO ~* '^[A-ZA-Z0-9._%+-]+@[A-ZA-Z0-9.-]+\.[A-ZA-Z]{2,}$'
 ),
 
-    CONSTRAINT chk_contato_pelo_menos_um_meio CHECK (
-        email_contato IS NOT NULL OR telefone IS NOT NULL OR celular IS NOT NULL
+    CONSTRAINT CHK_CONTATO_PELO_MENOS_UM_MEIO CHECK (
+        EMAIL_CONTATO IS NOT NULL OR TELEFONE IS NOT NULL OR CELULAR IS NOT NULL
     )
 );
 
 -- =====================================================
--- ÍNDICES - Contatos Cliente
+-- ÍNDICES - CONTATOS CLIENTE
 -- =====================================================
-CREATE INDEX idx_contatos_cliente ON contatos_cliente(codigo_cliente);
-CREATE INDEX idx_contatos_principal ON contatos_cliente(codigo_cliente, principal) WHERE principal = TRUE;
-CREATE INDEX idx_contatos_ativo ON contatos_cliente(ativo) WHERE ativo = TRUE;
-CREATE INDEX idx_contatos_email ON contatos_cliente(LOWER(email_contato)) WHERE email_contato IS NOT NULL;
+CREATE INDEX IDX_CONTATOS_CLIENTE ON CONTATOS_CLIENTE(CODIGO_CLIENTE);
+CREATE INDEX IDX_CONTATOS_PRINCIPAL ON CONTATOS_CLIENTE(CODIGO_CLIENTE, PRINCIPAL) WHERE PRINCIPAL = TRUE;
+CREATE INDEX IDX_CONTATOS_ATIVO ON CONTATOS_CLIENTE(ATIVO) WHERE ATIVO = TRUE;
+CREATE INDEX IDX_CONTATOS_EMAIL ON CONTATOS_CLIENTE(LOWER(EMAIL_CONTATO)) WHERE EMAIL_CONTATO IS NOT NULL;
 
--- Índice parcial: apenas contatos ativos e principais
-CREATE INDEX idx_contatos_ativos_principais
-    ON contatos_cliente(codigo_cliente)
-    WHERE ativo = TRUE AND principal = TRUE;
-
--- =====================================================
--- COMENTÁRIOS - Contatos
--- =====================================================
-COMMENT ON TABLE contatos_cliente IS
-'Pessoas de contato nas empresas clientes (pode haver múltiplos contatos por cliente)';
-
-COMMENT ON COLUMN contatos_cliente.principal IS
-'Indica o contato principal do cliente. Apenas UM contato por cliente deve ser principal.';
-
-COMMENT ON COLUMN contatos_cliente.ativo IS
-'Permite desativar contato sem excluir (pessoa saiu da empresa, etc)';
+-- ÍNDICE PARCIAL: APENAS CONTATOS ATIVOS E PRINCIPAIS
+CREATE INDEX IDX_CONTATOS_ATIVOS_PRINCIPAIS
+    ON CONTATOS_CLIENTE(CODIGO_CLIENTE)
+    WHERE ATIVO = TRUE AND PRINCIPAL = TRUE;
 
 -- =====================================================
--- TABELA: Observações Internas sobre Clientes
+-- COMENTÁRIOS - CONTATOS
 -- =====================================================
-CREATE TABLE observacoes_cliente (
-                                     codigo_observacao           BIGSERIAL PRIMARY KEY,
-                                     codigo_cliente              BIGINT NOT NULL,
-                                     codigo_usuario              BIGINT NOT NULL,
+COMMENT ON TABLE CONTATOS_CLIENTE IS
+'PESSOAS DE CONTATO NAS EMPRESAS CLIENTES (PODE HAVER MÚLTIPLOS CONTATOS POR CLIENTE)';
 
-    -- Conteúdo
-                                     observacao                  TEXT NOT NULL,
+COMMENT ON COLUMN CONTATOS_CLIENTE.PRINCIPAL IS
+'INDICA O CONTATO PRINCIPAL DO CLIENTE. APENAS UM CONTATO POR CLIENTE DEVE SER PRINCIPAL.';
 
-    -- Metadata
-                                     data_hora_observacao        TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+COMMENT ON COLUMN CONTATOS_CLIENTE.ATIVO IS
+'PERMITE DESATIVAR CONTATO SEM EXCLUIR (PESSOA SAIU DA EMPRESA, ETC)';
 
-    -- Foreign Keys
-                                     CONSTRAINT fk_observacoes_cliente
-                                         FOREIGN KEY (codigo_cliente)
-                                             REFERENCES clientes(codigo_cliente)
+-- =====================================================
+-- TABELA: OBSERVAÇÕES INTERNAS SOBRE CLIENTES
+-- =====================================================
+CREATE TABLE OBSERVACOES_CLIENTE (
+                                     CODIGO_OBSERVACAO           BIGSERIAL PRIMARY KEY,
+                                     CODIGO_CLIENTE              BIGINT NOT NULL,
+                                     CODIGO_USUARIO              BIGINT NOT NULL,
+
+    -- CONTEÚDO
+                                     OBSERVACAO                  TEXT NOT NULL,
+
+    -- METADATA
+                                     DATA_HORA_OBSERVACAO        TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+
+    -- FOREIGN KEYS
+                                     CONSTRAINT FK_OBSERVACOES_CLIENTE
+                                         FOREIGN KEY (CODIGO_CLIENTE)
+                                             REFERENCES CLIENTES(CODIGO_CLIENTE)
                                              ON DELETE CASCADE,
 
-                                     CONSTRAINT fk_observacoes_usuario
-                                         FOREIGN KEY (codigo_usuario)
-                                             REFERENCES usuarios(codigo_usuario)
+                                     CONSTRAINT FK_OBSERVACOES_USUARIO
+                                         FOREIGN KEY (CODIGO_USUARIO)
+                                             REFERENCES USUARIOS(CODIGO_USUARIO)
                                              ON DELETE RESTRICT,
 
-    -- Constraints
-                                     CONSTRAINT chk_observacao_minimo CHECK (
-                                         LENGTH(TRIM(observacao)) >= 5
+    -- CONSTRAINTS
+                                     CONSTRAINT CHK_OBSERVACAO_MINIMO CHECK (
+                                         LENGTH(TRIM(OBSERVACAO)) >= 5
                                          )
 );
 
 -- =====================================================
--- ÍNDICES - Observações
+-- ÍNDICES - OBSERVAÇÕES
 -- =====================================================
-CREATE INDEX idx_observacoes_cliente ON observacoes_cliente(codigo_cliente, data_hora_observacao DESC);
-CREATE INDEX idx_observacoes_usuario ON observacoes_cliente(codigo_usuario);
-CREATE INDEX idx_observacoes_data ON observacoes_cliente(data_hora_observacao DESC);
+CREATE INDEX IDX_OBSERVACOES_CLIENTE ON OBSERVACOES_CLIENTE(CODIGO_CLIENTE, DATA_HORA_OBSERVACAO DESC);
+CREATE INDEX IDX_OBSERVACOES_USUARIO ON OBSERVACOES_CLIENTE(CODIGO_USUARIO);
+CREATE INDEX IDX_OBSERVACOES_DATA ON OBSERVACOES_CLIENTE(DATA_HORA_OBSERVACAO DESC);
 
-COMMENT ON TABLE observacoes_cliente IS
-'Notas internas sobre clientes (não visíveis ao cliente). Útil para registrar histórico de interações.';
+COMMENT ON TABLE OBSERVACOES_CLIENTE IS
+'NOTAS INTERNAS SOBRE CLIENTES (NÃO VISÍVEIS AO CLIENTE). ÚTIL PARA REGISTRAR HISTÓRICO DE INTERAÇÕES.';
 
 -- =====================================================
--- TRIGGERS: Atualização automática de timestamps
+-- TRIGGERS: ATUALIZAÇÃO AUTOMÁTICA DE TIMESTAMPS
 -- =====================================================
-CREATE TRIGGER trg_clientes_atualizar_timestamp
-    BEFORE UPDATE ON clientes
+CREATE TRIGGER TRG_CLIENTES_ATUALIZAR_TIMESTAMP
+    BEFORE UPDATE ON CLIENTES
     FOR EACH ROW
-    EXECUTE FUNCTION atualizar_timestamp_atualizacao();
+    EXECUTE FUNCTION ATUALIZAR_TIMESTAMP_ATUALIZACAO();
 
-CREATE TRIGGER trg_contatos_atualizar_timestamp
-    BEFORE UPDATE ON contatos_cliente
+CREATE TRIGGER TRG_CONTATOS_ATUALIZAR_TIMESTAMP
+    BEFORE UPDATE ON CONTATOS_CLIENTE
     FOR EACH ROW
-    EXECUTE FUNCTION atualizar_timestamp_atualizacao();
+    EXECUTE FUNCTION ATUALIZAR_TIMESTAMP_ATUALIZACAO();
 
 -- =====================================================
--- TRIGGER: Garantir apenas UM contato principal por cliente
+-- TRIGGER: GARANTIR APENAS UM CONTATO PRINCIPAL POR CLIENTE
 -- =====================================================
-CREATE OR REPLACE FUNCTION validar_contato_principal()
+CREATE OR REPLACE FUNCTION VALIDAR_CONTATO_PRINCIPAL()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Se está marcando como principal
-    IF NEW.principal = TRUE THEN
-        -- Desmarca outros contatos principais do mesmo cliente
-UPDATE contatos_cliente
-SET principal = FALSE
-WHERE codigo_cliente = NEW.codigo_cliente
-  AND codigo_contato != COALESCE(NEW.codigo_contato, 0)
-          AND principal = TRUE;
+    -- SE ESTÁ MARCANDO COMO PRINCIPAL
+    IF NEW.PRINCIPAL = TRUE THEN
+        -- DESMARCA OUTROS CONTATOS PRINCIPAIS DO MESMO CLIENTE
+UPDATE CONTATOS_CLIENTE
+SET PRINCIPAL = FALSE
+WHERE CODIGO_CLIENTE = NEW.CODIGO_CLIENTE
+  AND CODIGO_CONTATO != COALESCE(NEW.CODIGO_CONTATO, 0)
+          AND PRINCIPAL = TRUE;
 END IF;
 
 RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-CREATE TRIGGER trg_contatos_validar_principal
-    BEFORE INSERT OR UPDATE ON contatos_cliente
+CREATE TRIGGER TRG_CONTATOS_VALIDAR_PRINCIPAL
+    BEFORE INSERT OR UPDATE ON CONTATOS_CLIENTE
                          FOR EACH ROW
-                         EXECUTE FUNCTION validar_contato_principal();
+                         EXECUTE FUNCTION VALIDAR_CONTATO_PRINCIPAL();
 
-COMMENT ON FUNCTION validar_contato_principal() IS
-'Garante que apenas UM contato seja marcado como principal por cliente';
+COMMENT ON FUNCTION VALIDAR_CONTATO_PRINCIPAL() IS
+'GARANTE QUE APENAS UM CONTATO SEJA MARCADO COMO PRINCIPAL POR CLIENTE';
 
 -- =====================================================
--- TRIGGER: Validar CNPJ antes de inserir/atualizar
+-- TRIGGER: VALIDAR CNPJ ANTES DE INSERIR/ATUALIZAR
 -- =====================================================
-CREATE OR REPLACE FUNCTION validar_cnpj_cliente()
+CREATE OR REPLACE FUNCTION VALIDAR_CNPJ_CLIENTE()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Remove formatação do CNPJ
-    NEW.cnpj := REGEXP_REPLACE(NEW.cnpj, '[^0-9]', '', 'g');
+    -- REMOVE FORMATAÇÃO DO CNPJ
+    NEW.CNPJ := REGEXP_REPLACE(NEW.CNPJ, '[^0-9]', '', 'G');
 
-    -- Valida formato básico
-    IF NOT validar_formato_cnpj(NEW.cnpj) THEN
-        RAISE EXCEPTION 'CNPJ inválido: %', NEW.cnpj;
+    -- VALIDA FORMATO BÁSICO
+    IF NOT VALIDAR_FORMATO_CNPJ(NEW.CNPJ) THEN
+        RAISE EXCEPTION 'CNPJ INVÁLIDO: %', NEW.CNPJ;
 END IF;
 
-    -- Reformata com pontuação
-    NEW.cnpj := formatar_cnpj(NEW.cnpj);
+    -- REFORMATA COM PONTUAÇÃO
+    NEW.CNPJ := FORMATAR_CNPJ(NEW.CNPJ);
 
 RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-CREATE TRIGGER trg_clientes_validar_cnpj
-    BEFORE INSERT OR UPDATE ON clientes
+CREATE TRIGGER TRG_CLIENTES_VALIDAR_CNPJ
+    BEFORE INSERT OR UPDATE ON CLIENTES
                          FOR EACH ROW
-                         EXECUTE FUNCTION validar_cnpj_cliente();
+                         EXECUTE FUNCTION VALIDAR_CNPJ_CLIENTE();
 
-COMMENT ON FUNCTION validar_cnpj_cliente() IS
-'Valida e formata CNPJ automaticamente antes de salvar';
+COMMENT ON FUNCTION VALIDAR_CNPJ_CLIENTE() IS
+'VALIDA E FORMATA CNPJ AUTOMATICAMENTE ANTES DE SALVAR';
 
 -- =====================================================
--- TRIGGER: Impedir exclusão física de clientes com relacionamentos
+-- TRIGGER: IMPEDIR EXCLUSÃO FÍSICA DE CLIENTES COM RELACIONAMENTOS
 -- =====================================================
-CREATE OR REPLACE FUNCTION impedir_exclusao_cliente_com_relacionamentos()
+CREATE OR REPLACE FUNCTION IMPEDIR_EXCLUSAO_CLIENTE_COM_RELACIONAMENTOS()
 RETURNS TRIGGER AS $$
 DECLARE
-tem_contratos INTEGER;
-    tem_os INTEGER;
+TEM_CONTRATOS INTEGER;
+    TEM_OS INTEGER;
 BEGIN
-    -- Verifica se há contratos
-SELECT COUNT(*) INTO tem_contratos
-FROM contratos
-WHERE codigo_cliente = OLD.codigo_cliente;
+    -- VERIFICA SE HÁ CONTRATOS
+SELECT COUNT(*) INTO TEM_CONTRATOS
+FROM CONTRATOS
+WHERE CODIGO_CLIENTE = OLD.CODIGO_CLIENTE;
 
--- Verifica se há OS
-SELECT COUNT(*) INTO tem_os
-FROM ordens_servico
-WHERE codigo_cliente = OLD.codigo_cliente;
+-- VERIFICA SE HÁ OS
+SELECT COUNT(*) INTO TEM_OS
+FROM ORDENS_SERVICO
+WHERE CODIGO_CLIENTE = OLD.CODIGO_CLIENTE;
 
--- Se tiver relacionamentos, impede exclusão física
-IF tem_contratos > 0 OR tem_os > 0 THEN
-        RAISE EXCEPTION 'Cliente possui % contratos e % ordens de serviço. Use exclusão lógica (soft delete).',
-            tem_contratos, tem_os;
+-- SE TIVER RELACIONAMENTOS, IMPEDE EXCLUSÃO FÍSICA
+IF TEM_CONTRATOS > 0 OR TEM_OS > 0 THEN
+        RAISE EXCEPTION 'CLIENTE POSSUI % CONTRATOS E % ORDENS DE SERVIÇO. USE EXCLUSÃO LÓGICA (SOFT DELETE).',
+            TEM_CONTRATOS, TEM_OS;
 END IF;
 
 RETURN OLD;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
--- Nota: Este trigger será ativado apenas na exclusão física (DELETE).
--- O soft delete (UPDATE com excluido_em) não dispara este trigger.
-CREATE TRIGGER trg_clientes_impedir_exclusao
-    BEFORE DELETE ON clientes
+-- NOTA: ESTE TRIGGER SERÁ ATIVADO APENAS NA EXCLUSÃO FÍSICA (DELETE).
+-- O SOFT DELETE (UPDATE COM EXCLUIDO_EM) NÃO DISPARA ESTE TRIGGER.
+CREATE TRIGGER TRG_CLIENTES_IMPEDIR_EXCLUSAO
+    BEFORE DELETE ON CLIENTES
     FOR EACH ROW
-    EXECUTE FUNCTION impedir_exclusao_cliente_com_relacionamentos();
+    EXECUTE FUNCTION IMPEDIR_EXCLUSAO_CLIENTE_COM_RELACIONAMENTOS();
 
-COMMENT ON FUNCTION impedir_exclusao_cliente_com_relacionamentos() IS
-'Impede exclusão física de clientes que possuem contratos ou OS. Força uso de soft delete.';
+COMMENT ON FUNCTION IMPEDIR_EXCLUSAO_CLIENTE_COM_RELACIONAMENTOS() IS
+'IMPEDE EXCLUSÃO FÍSICA DE CLIENTES QUE POSSUEM CONTRATOS OU OS. FORÇA USO DE SOFT DELETE.';
 
 -- =====================================================
 -- VIEWS ÚTEIS
 -- =====================================================
 
--- View: Clientes Ativos com Contato Principal
-CREATE OR REPLACE VIEW vw_clientes_ativos_com_contato AS
+-- VIEW: CLIENTES ATIVOS COM CONTATO PRINCIPAL
+CREATE OR REPLACE VIEW VW_CLIENTES_ATIVOS_COM_CONTATO AS
 SELECT
-    c.codigo_cliente,
-    c.razao_social,
-    c.nome_fantasia,
-    c.cnpj,
-    c.cidade,
-    c.estado,
-    c.status_cliente,
-    cc.nome_contato AS contato_principal_nome,
-    cc.email_contato AS contato_principal_email,
-    cc.telefone AS contato_principal_telefone,
-    c.criado_em
-FROM clientes c
-         LEFT JOIN contatos_cliente cc ON c.codigo_cliente = cc.codigo_cliente AND cc.principal = TRUE
-WHERE c.excluido_em IS NULL
-ORDER BY c.razao_social;
+    C.CODIGO_CLIENTE,
+    C.RAZAO_SOCIAL,
+    C.NOME_FANTASIA,
+    C.CNPJ,
+    C.CIDADE,
+    C.ESTADO,
+    C.STATUS_CLIENTE,
+    CC.NOME_CONTATO AS CONTATO_PRINCIPAL_NOME,
+    CC.EMAIL_CONTATO AS CONTATO_PRINCIPAL_EMAIL,
+    CC.TELEFONE AS CONTATO_PRINCIPAL_TELEFONE,
+    C.CRIADO_EM
+FROM CLIENTES C
+         LEFT JOIN CONTATOS_CLIENTE CC ON C.CODIGO_CLIENTE = CC.CODIGO_CLIENTE AND CC.PRINCIPAL = TRUE
+WHERE C.EXCLUIDO_EM IS NULL
+ORDER BY C.RAZAO_SOCIAL;
 
-COMMENT ON VIEW vw_clientes_ativos_com_contato IS
-'Visão simplificada de clientes ativos com seus contatos principais (para listagens)';
+COMMENT ON VIEW VW_CLIENTES_ATIVOS_COM_CONTATO IS
+'VISÃO SIMPLIFICADA DE CLIENTES ATIVOS COM SEUS CONTATOS PRINCIPAIS (PARA LISTAGENS)';
 
 -- =====================================================
 -- FIM DA MIGRATION V003

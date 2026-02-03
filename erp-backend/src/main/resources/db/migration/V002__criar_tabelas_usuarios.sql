@@ -1,221 +1,214 @@
 -- =====================================================
--- V002__criar_tabelas_usuarios.sql
--- Descrição: Estrutura completa de usuários, perfis e permissões (RBAC)
--- Autor: Breno Olirveira Alves
--- Data: 2025-01-10
+-- V002__CRIAR_TABELAS_USUARIOS.SQL
+-- DESCRIÇÃO: ESTRUTURA COMPLETA DE USUÁRIOS, PERFIS E PERMISSÕES (RBAC)
+-- AUTOR: BRENO OLIRVEIRA ALVES
+-- DATA: 2025-01-10
 -- =====================================================
 
 -- =====================================================
--- TABELA: Perfis (Roles)
+-- TABELA: PERFIS (ROLES)
 -- =====================================================
-CREATE TABLE perfis (
-                        codigo_perfil       BIGSERIAL PRIMARY KEY,
-                        nome_perfil         VARCHAR(50) UNIQUE NOT NULL,
-                        descricao_perfil    TEXT,
-                        sistema             BOOLEAN DEFAULT FALSE NOT NULL,  -- Se TRUE, não pode ser excluído
-                        criado_em           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+CREATE TABLE PERFIS (
+                        CODIGO_PERFIL       BIGSERIAL PRIMARY KEY,
+                        NOME_PERFIL         VARCHAR(50) UNIQUE NOT NULL,
+                        DESCRICAO_PERFIL    TEXT,
+                        SISTEMA             BOOLEAN DEFAULT FALSE NOT NULL,  -- SE TRUE, NÃO PODE SER EXCLUÍDO
+                        CRIADO_EM           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
-                        CONSTRAINT chk_perfil_nome_minimo CHECK (LENGTH(TRIM(nome_perfil)) >= 3)
+                        CONSTRAINT CHK_PERFIL_NOME_MINIMO CHECK (LENGTH(TRIM(NOME_PERFIL)) >= 3)
 );
 
--- Índices
-CREATE INDEX idx_perfis_nome ON perfis(nome_perfil);
-CREATE INDEX idx_perfis_sistema ON perfis(sistema) WHERE sistema = TRUE;
+-- ÍNDICES
+CREATE INDEX IDX_PERFIS_NOME ON PERFIS(NOME_PERFIL);
+CREATE INDEX IDX_PERFIS_SISTEMA ON PERFIS(SISTEMA) WHERE SISTEMA = TRUE;
 
--- Comentários
-COMMENT ON TABLE perfis IS
-'Perfis de acesso (Roles) do sistema - Admin, Gestor, Financeiro, Operacional';
+-- COMENTÁRIOS
+COMMENT ON TABLE PERFIS IS
+'PERFIS DE ACESSO (ROLES) DO SISTEMA - ADMIN, GESTOR, FINANCEIRO, OPERACIONAL';
 
-COMMENT ON COLUMN perfis.sistema IS
-'Indica se é perfil do sistema (não pode ser excluído). Admin, Gestor, etc são perfis do sistema.';
+COMMENT ON COLUMN PERFIS.SISTEMA IS
+'INDICA SE É PERFIL DO SISTEMA (NÃO PODE SER EXCLUÍDO). ADMIN, GESTOR, ETC SÃO PERFIS DO SISTEMA.';
 
 -- =====================================================
--- TABELA: Permissões
+-- TABELA: PERMISSÕES
 -- =====================================================
-CREATE TABLE permissoes (
-                            codigo_permissao    BIGSERIAL PRIMARY KEY,
-                            modulo              VARCHAR(50) NOT NULL,  -- CLIENTES, CONTRATOS, OS, etc
-                            acao                VARCHAR(20) NOT NULL,  -- VER, CRIAR, EDITAR, EXCLUIR
-                            descricao_permissao TEXT,
+CREATE TABLE PERMISSOES (
+                            CODIGO_PERMISSAO    BIGSERIAL PRIMARY KEY,
+                            MODULO              VARCHAR(50) NOT NULL,  -- CLIENTES, CONTRATOS, OS, ETC
+                            ACAO                VARCHAR(20) NOT NULL,  -- VER, CRIAR, EDITAR, EXCLUIR
+                            DESCRICAO_PERMISSAO TEXT,
 
-                            CONSTRAINT uk_permissao_modulo_acao UNIQUE (modulo, acao),
-                            CONSTRAINT chk_permissao_acao CHECK (acao IN ('VER', 'CRIAR', 'EDITAR', 'EXCLUIR'))
+                            CONSTRAINT UK_PERMISSAO_MODULO_ACAO UNIQUE (MODULO, ACAO),
+                            CONSTRAINT CHK_PERMISSAO_ACAO CHECK (ACAO IN ('VER', 'CRIAR', 'EDITAR', 'EXCLUIR'))
 );
 
--- Índices
-CREATE INDEX idx_permissoes_modulo ON permissoes(modulo);
-CREATE INDEX idx_permissoes_acao ON permissoes(acao);
+-- ÍNDICES
+CREATE INDEX IDX_PERMISSOES_MODULO ON PERMISSOES(MODULO);
+CREATE INDEX IDX_PERMISSOES_ACAO ON PERMISSOES(ACAO);
 
--- Comentários
-COMMENT ON TABLE permissoes IS
-'Permissões granulares do sistema - define ações possíveis por módulo';
+-- COMENTÁRIOS
+COMMENT ON TABLE PERMISSOES IS
+'PERMISSÕES GRANULARES DO SISTEMA - DEFINE AÇÕES POSSÍVEIS POR MÓDULO';
 
-COMMENT ON COLUMN permissoes.modulo IS
-'Módulo do sistema: CLIENTES, CONTRATOS, SERVICOS, OS, FATURAMENTO, USUARIOS';
+COMMENT ON COLUMN PERMISSOES.MODULO IS
+'MÓDULO DO SISTEMA: CLIENTES, CONTRATOS, SERVICOS, OS, FATURAMENTO, USUARIOS';
 
-COMMENT ON COLUMN permissoes.acao IS
-'Ação permitida: VER (read), CRIAR (create), EDITAR (update), EXCLUIR (delete)';
+COMMENT ON COLUMN PERMISSOES.ACAO IS
+'AÇÃO PERMITIDA: VER (READ), CRIAR (CREATE), EDITAR (UPDATE), EXCLUIR (DELETE)';
 
 -- =====================================================
--- TABELA: Perfil_Permissões (N:N)
+-- TABELA: PERFIL_PERMISSÕES (N:N)
 -- =====================================================
-CREATE TABLE perfil_permissoes (
-                                   codigo_perfil       BIGINT NOT NULL,
-                                   codigo_permissao    BIGINT NOT NULL,
+CREATE TABLE PERFIL_PERMISSOES (
+                                   CODIGO_PERFIL       BIGINT NOT NULL,
+                                   CODIGO_PERMISSAO    BIGINT NOT NULL,
 
-                                   PRIMARY KEY (codigo_perfil, codigo_permissao),
+                                   PRIMARY KEY (CODIGO_PERFIL, CODIGO_PERMISSAO),
 
-                                   CONSTRAINT fk_perfil_permissoes_perfil
-                                       FOREIGN KEY (codigo_perfil)
-                                           REFERENCES perfis(codigo_perfil)
+                                   CONSTRAINT FK_PERFIL_PERMISSOES_PERFIL
+                                       FOREIGN KEY (CODIGO_PERFIL)
+                                           REFERENCES PERFIS(CODIGO_PERFIL)
                                            ON DELETE CASCADE,
 
-                                   CONSTRAINT fk_perfil_permissoes_permissao
-                                       FOREIGN KEY (codigo_permissao)
-                                           REFERENCES permissoes(codigo_permissao)
+                                   CONSTRAINT FK_PERFIL_PERMISSOES_PERMISSAO
+                                       FOREIGN KEY (CODIGO_PERMISSAO)
+                                           REFERENCES PERMISSOES(CODIGO_PERMISSAO)
                                            ON DELETE CASCADE
 );
 
--- Índices para otimizar joins
-CREATE INDEX idx_perfil_permissoes_perfil ON perfil_permissoes(codigo_perfil);
-CREATE INDEX idx_perfil_permissoes_permissao ON perfil_permissoes(codigo_permissao);
+-- ÍNDICES PARA OTIMIZAR JOINS
+CREATE INDEX IDX_PERFIL_PERMISSOES_PERFIL ON PERFIL_PERMISSOES(CODIGO_PERFIL);
+CREATE INDEX IDX_PERFIL_PERMISSOES_PERMISSAO ON PERFIL_PERMISSOES(CODIGO_PERMISSAO);
 
-COMMENT ON TABLE perfil_permissoes IS
-'Tabela associativa entre Perfis e Permissões - define quais permissões cada perfil possui';
+COMMENT ON TABLE PERFIL_PERMISSOES IS
+'TABELA ASSOCIATIVA ENTRE PERFIS E PERMISSÕES - DEFINE QUAIS PERMISSÕES CADA PERFIL POSSUI';
 
 -- =====================================================
--- TABELA: Usuários
+-- TABELA: USUÁRIOS
 -- =====================================================
-CREATE TABLE usuarios (
-                          codigo_usuario      BIGSERIAL PRIMARY KEY,
-                          nome_completo       VARCHAR(100) NOT NULL,
-                          email               VARCHAR(100) UNIQUE NOT NULL,
-                          senha_hash          VARCHAR(255) NOT NULL,  -- BCrypt hash
-                          codigo_perfil       BIGINT NOT NULL,
-                          ativo               BOOLEAN DEFAULT TRUE NOT NULL,
+CREATE TABLE USUARIOS (
+                          CODIGO_USUARIO      BIGSERIAL PRIMARY KEY,
+                          NOME_COMPLETO       VARCHAR(100) NOT NULL,
+                          EMAIL               VARCHAR(100) UNIQUE NOT NULL,
+                          SENHA_HASH          VARCHAR(255) NOT NULL,  -- BCRYPT HASH
+                          CODIGO_PERFIL       BIGINT NOT NULL,
+                          ATIVO               BOOLEAN DEFAULT TRUE NOT NULL,
 
-    -- Auditoria
-                          criado_em           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                          criado_por          BIGINT NOT NULL,
-                          atualizado_em       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                          atualizado_por      BIGINT NOT NULL,
-                          excluido_em         TIMESTAMP WITH TIME ZONE,
-                          excluido_por        BIGINT NOT NULL,
+    -- AUDITORIA
+                          CRIADO_EM           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                          CRIADO_POR          BIGINT NOT NULL,
+                          ATUALIZADO_EM       TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                          ATUALIZADO_POR      BIGINT NOT NULL,
+                          EXCLUIDO_EM         TIMESTAMP WITH TIME ZONE,
+                          EXCLUIDO_POR        BIGINT NOT NULL,
 
-    -- Constraints
-                          CONSTRAINT fk_usuarios_perfil
-                              FOREIGN KEY (codigo_perfil)
-                                  REFERENCES perfis(codigo_perfil)
-                                  ON DELETE RESTRICT,  -- Não permite excluir perfil se houver usuários
+    -- CONSTRAINTS
+                          CONSTRAINT FK_USUARIOS_PERFIL
+                              FOREIGN KEY (CODIGO_PERFIL)
+                                  REFERENCES PERFIS(CODIGO_PERFIL)
+                                  ON DELETE RESTRICT,  -- NÃO PERMITE EXCLUIR PERFIL SE HOUVER USUÁRIOS
 
-                          CONSTRAINT fk_usuarios_excluido_por
-                              FOREIGN KEY (excluido_por)
-                                  REFERENCES usuarios(codigo_usuario)
+                          CONSTRAINT FK_USUARIOS_EXCLUIDO_POR
+                              FOREIGN KEY (EXCLUIDO_POR)
+                                  REFERENCES USUARIOS(CODIGO_USUARIO)
                                   ON DELETE SET NULL,
 
-                          CONSTRAINT chk_usuario_nome_minimo CHECK (LENGTH(TRIM(nome_completo)) >= 3),
-                          CONSTRAINT chk_usuario_email_formato CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
-    CONSTRAINT chk_usuario_excluido_logica CHECK (
-        (excluido_em IS NULL AND excluido_por IS NULL) OR
-        (excluido_em IS NOT NULL AND excluido_por IS NOT NULL)
+                          CONSTRAINT CHK_USUARIO_NOME_MINIMO CHECK (LENGTH(TRIM(NOME_COMPLETO)) >= 3),
+                          CONSTRAINT CHK_USUARIO_EMAIL_FORMATO CHECK (EMAIL ~* '^[A-ZA-Z0-9._%+-]+@[A-ZA-Z0-9.-]+\.[A-ZA-Z]{2,}$'),
+    CONSTRAINT CHK_USUARIO_EXCLUIDO_LOGICA CHECK (
+        (EXCLUIDO_EM IS NULL AND EXCLUIDO_POR IS NULL) OR
+        (EXCLUIDO_EM IS NOT NULL AND EXCLUIDO_POR IS NOT NULL)
     )
 );
 
--- Índices estratégicos
-CREATE UNIQUE INDEX idx_usuarios_email_ativo
-    ON usuarios(LOWER(email))
-    WHERE excluido_em IS NULL;  -- Email único apenas entre usuários ativos
+-- ÍNDICES ESTRATÉGICOS
+CREATE UNIQUE INDEX IDX_USUARIOS_EMAIL_ATIVO
+    ON USUARIOS(LOWER(EMAIL))
+    WHERE EXCLUIDO_EM IS NULL;  -- EMAIL ÚNICO APENAS ENTRE USUÁRIOS ATIVOS
 
-CREATE INDEX idx_usuarios_perfil ON usuarios(codigo_perfil);
-CREATE INDEX idx_usuarios_ativo ON usuarios(ativo) WHERE ativo = TRUE;
-CREATE INDEX idx_usuarios_nome ON usuarios(nome_completo);
-CREATE INDEX idx_usuarios_excluido ON usuarios(excluido_em) WHERE excluido_em IS NOT NULL;
+CREATE INDEX IDX_USUARIOS_PERFIL ON USUARIOS(CODIGO_PERFIL);
+CREATE INDEX IDX_USUARIOS_ATIVO ON USUARIOS(ATIVO) WHERE ATIVO = TRUE;
+CREATE INDEX IDX_USUARIOS_NOME ON USUARIOS(NOME_COMPLETO);
+CREATE INDEX IDX_USUARIOS_EXCLUIDO ON USUARIOS(EXCLUIDO_EM) WHERE EXCLUIDO_EM IS NOT NULL;
 
--- Comentários
-COMMENT ON TABLE usuarios IS
-'Usuários do sistema - pessoas com acesso ao ERP';
+-- COMENTÁRIOS
+COMMENT ON TABLE USUARIOS IS
+'USUÁRIOS DO SISTEMA - PESSOAS COM ACESSO AO ERP';
 
-COMMENT ON COLUMN usuarios.senha_hash IS
-'Hash BCrypt da senha (NUNCA armazenar senha em texto plano)';
+COMMENT ON COLUMN USUARIOS.SENHA_HASH IS
+'HASH BCRYPT DA SENHA (NUNCA ARMAZENAR SENHA EM TEXTO PLANO)';
 
-COMMENT ON COLUMN usuarios.ativo IS
-'Indica se usuário pode fazer login (diferente de excluído)';
+COMMENT ON COLUMN USUARIOS.ATIVO IS
+'INDICA SE USUÁRIO PODE FAZER LOGIN (DIFERENTE DE EXCLUÍDO)';
 
-COMMENT ON COLUMN usuarios.excluido_em IS
-'Data/hora de exclusão lógica (soft delete). NULL = não excluído';
+COMMENT ON COLUMN USUARIOS.EXCLUIDO_EM IS
+'DATA/HORA DE EXCLUSÃO LÓGICA (SOFT DELETE). NULL = NÃO EXCLUÍDO';
 
 -- =====================================================
--- TABELA: Histórico de Acessos (Login Logs)
+-- TABELA: HISTÓRICO DE ACESSOS (LOGIN LOGS)
 -- =====================================================
-CREATE TABLE historico_acessos (
-                                   codigo_acesso       BIGSERIAL PRIMARY KEY,
-                                   codigo_usuario      BIGINT NOT NULL,
-                                   ip_acesso           VARCHAR(45),  -- Suporta IPv6
-                                   user_agent          TEXT,  -- Informações do navegador
-                                   data_hora_acesso    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                   sucesso             BOOLEAN DEFAULT TRUE NOT NULL,
-                                   motivo_falha        VARCHAR(255),  -- Senha incorreta, usuário inativo, etc
+CREATE TABLE HISTORICO_ACESSOS (
+                                   CODIGO_ACESSO       BIGSERIAL PRIMARY KEY,
+                                   CODIGO_USUARIO      BIGINT NOT NULL,
+                                   IP_ACESSO           VARCHAR(45),  -- SUPORTA IPV6
+                                   USER_AGENT          TEXT,  -- INFORMAÇÕES DO NAVEGADOR
+                                   DATA_HORA_ACESSO    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                   SUCESSO             BOOLEAN DEFAULT TRUE NOT NULL,
+                                   MOTIVO_FALHA        VARCHAR(255),  -- SENHA INCORRETA, USUÁRIO INATIVO, ETC
 
-                                   CONSTRAINT fk_historico_acessos_usuario
-                                       FOREIGN KEY (codigo_usuario)
-                                           REFERENCES usuarios(codigo_usuario)
+                                   CONSTRAINT FK_HISTORICO_ACESSOS_USUARIO
+                                       FOREIGN KEY (CODIGO_USUARIO)
+                                           REFERENCES USUARIOS(CODIGO_USUARIO)
                                            ON DELETE CASCADE
 );
 
--- Índices para consultas comuns
-CREATE INDEX idx_historico_usuario ON historico_acessos(codigo_usuario);
-CREATE INDEX idx_historico_data ON historico_acessos(data_hora_acesso DESC);
-CREATE INDEX idx_historico_sucesso ON historico_acessos(sucesso) WHERE sucesso = FALSE;
-CREATE INDEX idx_historico_ip ON historico_acessos(ip_acesso);
+-- ÍNDICES PARA CONSULTAS COMUNS
+CREATE INDEX IDX_HISTORICO_USUARIO ON HISTORICO_ACESSOS(CODIGO_USUARIO);
+CREATE INDEX IDX_HISTORICO_DATA ON HISTORICO_ACESSOS(DATA_HORA_ACESSO DESC);
+CREATE INDEX IDX_HISTORICO_SUCESSO ON HISTORICO_ACESSOS(SUCESSO) WHERE SUCESSO = FALSE;
+CREATE INDEX IDX_HISTORICO_IP ON HISTORICO_ACESSOS(IP_ACESSO);
 
--- Índice composto para "últimos acessos do usuário"
-CREATE INDEX idx_historico_usuario_data ON historico_acessos(codigo_usuario, data_hora_acesso DESC);
+-- ÍNDICE COMPOSTO PARA "ÚLTIMOS ACESSOS DO USUÁRIO"
+CREATE INDEX IDX_HISTORICO_USUARIO_DATA ON HISTORICO_ACESSOS(CODIGO_USUARIO, DATA_HORA_ACESSO DESC);
 
-COMMENT ON TABLE historico_acessos IS
-'Registro de todas as tentativas de login (bem-sucedidas ou não)';
+COMMENT ON TABLE HISTORICO_ACESSOS IS
+'REGISTRO DE TODAS AS TENTATIVAS DE LOGIN (BEM-SUCEDIDAS OU NÃO)';
 
-COMMENT ON COLUMN historico_acessos.sucesso IS
-'TRUE = login bem-sucedido, FALSE = falha (senha incorreta, usuário bloqueado, etc)';
+COMMENT ON COLUMN HISTORICO_ACESSOS.SUCESSO IS
+'TRUE = LOGIN BEM-SUCEDIDO, FALSE = FALHA (SENHA INCORRETA, USUÁRIO BLOQUEADO, ETC)';
 
 -- =====================================================
--- TRIGGERS: Atualização automática de timestamps
+-- TRIGGERS: ATUALIZAÇÃO AUTOMÁTICA DE TIMESTAMPS
 -- =====================================================
-CREATE TRIGGER trg_usuarios_atualizar_timestamp
-    BEFORE UPDATE ON usuarios
+CREATE TRIGGER TRG_USUARIOS_ATUALIZAR_TIMESTAMP
+    BEFORE UPDATE ON USUARIOS
     FOR EACH ROW
-    EXECUTE FUNCTION atualizar_timestamp_atualizacao();
+    EXECUTE FUNCTION ATUALIZAR_TIMESTAMP_ATUALIZACAO();
 
 -- =====================================================
--- TRIGGERS: Auditoria (registra mudanças críticas)
+-- TRIGGERS: AUDITORIA (REGISTRA MUDANÇAS CRÍTICAS)
 -- =====================================================
--- Nota: A função registrar_auditoria() precisa ser adaptada para cada tabela
--- por causa do nome da PK. Vou criar triggers específicos depois.
+-- NOTA: A FUNÇÃO REGISTRAR_AUDITORIA() PRECISA SER ADAPTADA PARA CADA TABELA
+-- POR CAUSA DO NOME DA PK. VOU CRIAR TRIGGERS ESPECÍFICOS DEPOIS.
 
 -- =====================================================
 -- ÍNDICES ADICIONAIS PARA PERFORMANCE
 -- =====================================================
 
--- Índice parcial: apenas usuários ativos e não excluídos
-CREATE INDEX idx_usuarios_ativos_completo
-    ON usuarios(codigo_usuario, nome_completo, email)
-    WHERE ativo = TRUE AND excluido_em IS NULL;
+-- ÍNDICE PARCIAL: APENAS USUÁRIOS ATIVOS E NÃO EXCLUÍDOS
+CREATE INDEX IDX_USUARIOS_ATIVOS_COMPLETO
+    ON USUARIOS(CODIGO_USUARIO, NOME_COMPLETO, EMAIL)
+    WHERE ATIVO = TRUE AND EXCLUIDO_EM IS NULL;
 
--- Índice para busca case-insensitive por nome
-CREATE INDEX idx_usuarios_nome_lower ON usuarios(LOWER(nome_completo));
-
--- =====================================================
--- PARTICIONAMENTO (Opcional - para grande volume)
--- =====================================================
--- Se historico_acessos crescer muito, considere particionar por data:
--- CREATE TABLE historico_acessos_2025_01 PARTITION OF historico_acessos
---     FOR VALUES FROM ('2025-01-01') TO ('2025-02-01');
+-- ÍNDICE PARA BUSCA CASE-INSENSITIVE POR NOME
+CREATE INDEX IDX_USUARIOS_NOME_LOWER ON USUARIOS(LOWER(NOME_COMPLETO));
 
 -- =====================================================
 -- CONSTRAINTS ADICIONAIS DE SEGURANÇA
 -- =====================================================
 
--- Impede que o último admin seja desativado
--- (será implementado via trigger ou lógica de aplicação)
+-- IMPEDE QUE O ÚLTIMO ADMIN SEJA DESATIVADO
+-- (SERÁ IMPLEMENTADO VIA TRIGGER OU LÓGICA DE APLICAÇÃO)
 
 -- =====================================================
 -- FIM DA MIGRATION V002

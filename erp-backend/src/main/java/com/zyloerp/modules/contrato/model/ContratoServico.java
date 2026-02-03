@@ -17,21 +17,21 @@ public class ContratoServico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo_contrato_servico")
+    @Column(name = "CODIGO_CONTRATO_SERVICO")
     private Long codigoContratoServico;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "codigo_contrato", nullable = false)
+    @JoinColumn(name = "CODIGO_CONTRATO", nullable = false)
     private Contrato contrato;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "codigo_servico", nullable = false)
+    @JoinColumn(name = "CODIGO_SERVICO", nullable = false)
     private Servico servico;
 
-    @Column(name = "valor_servico", nullable = false, precision = 10, scale = 2)
+    @Column(name = "VALOR_SERVICO", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorServico;
 
-    @Column(name = "quantidade", nullable = false)
+    @Column(name = "QUANTIDADE", nullable = false)
     @Builder.Default
     private Integer quantidade = 1;
 }

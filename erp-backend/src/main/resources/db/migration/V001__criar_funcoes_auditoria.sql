@@ -1,233 +1,233 @@
 -- =====================================================
--- V001__criar_funcoes_auditoria.sql
--- Descrição: Funções e triggers para auditoria automática
--- Autor: Breno Olivera Alves
--- Data: 2025-01-10
+-- V001__CRIAR_FUNCOES_AUDITORIA.SQL
+-- DESCRIÇÃO: FUNÇÕES E TRIGGERS PARA AUDITORIA AUTOMÁTICA
+-- AUTOR: BRENO OLIVERA ALVES
+-- DATA: 2025-01-10
 -- =====================================================
 
 -- =====================================================
--- EXTENSION PARA UUID (caso precise no futuro)
+-- EXTENSION PARA UUID (CASO PRECISE NO FUTURO)
 -- =====================================================
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "UUID-OSSP";
 
 -- =====================================================
--- FUNÇÃO: Atualizar timestamp de atualização automaticamente
+-- FUNÇÃO: ATUALIZAR TIMESTAMP DE ATUALIZAÇÃO AUTOMATICAMENTE
 -- =====================================================
-CREATE OR REPLACE FUNCTION atualizar_timestamp_atualizacao()
+CREATE OR REPLACE FUNCTION ATUALIZAR_TIMESTAMP_ATUALIZACAO()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.atualizado_em = CURRENT_TIMESTAMP;
+    NEW.ATUALIZADO_EM = CURRENT_TIMESTAMP;
 RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-COMMENT ON FUNCTION atualizar_timestamp_atualizacao() IS
-'Trigger function que atualiza automaticamente o campo atualizado_em';
+COMMENT ON FUNCTION ATUALIZAR_TIMESTAMP_ATUALIZACAO() IS
+'TRIGGER FUNCTION QUE ATUALIZA AUTOMATICAMENTE O CAMPO ATUALIZADO_EM';
 
 -- =====================================================
--- FUNÇÃO: Validar CNPJ (formato básico)
+-- FUNÇÃO: VALIDAR CNPJ (FORMATO BÁSICO)
 -- =====================================================
-CREATE OR REPLACE FUNCTION validar_formato_cnpj(cnpj_input VARCHAR)
+CREATE OR REPLACE FUNCTION VALIDAR_FORMATO_CNPJ(CNPJ_INPUT VARCHAR)
 RETURNS BOOLEAN AS $$
 BEGIN
-    -- Remove caracteres não numéricos
-    cnpj_input := REGEXP_REPLACE(cnpj_input, '[^0-9]', '', 'g');
+    -- REMOVE CARACTERES NÃO NUMÉRICOS
+    CNPJ_INPUT := REGEXP_REPLACE(CNPJ_INPUT, '[^0-9]', '', 'G');
 
-    -- Verifica se tem 14 dígitos
-    IF LENGTH(cnpj_input) != 14 THEN
+    -- VERIFICA SE TEM 14 DÍGITOS
+    IF LENGTH(CNPJ_INPUT) != 14 THEN
         RETURN FALSE;
 END IF;
 
-    -- Verifica se não são todos dígitos iguais
-    IF cnpj_input ~ '^(\d)\1{13}$' THEN
+    -- VERIFICA SE NÃO SÃO TODOS DÍGITOS IGUAIS
+    IF CNPJ_INPUT ~ '^(\D)\1{13}$' THEN
         RETURN FALSE;
 END IF;
 
 RETURN TRUE;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE PLPGSQL IMMUTABLE;
 
-COMMENT ON FUNCTION validar_formato_cnpj(VARCHAR) IS
-'Valida o formato básico de um CNPJ (14 dígitos, não todos iguais)';
+COMMENT ON FUNCTION VALIDAR_FORMATO_CNPJ(VARCHAR) IS
+'VALIDA O FORMATO BÁSICO DE UM CNPJ (14 DÍGITOS, NÃO TODOS IGUAIS)';
 
 -- =====================================================
--- FUNÇÃO: Formatar CNPJ (adicionar pontuação)
+-- FUNÇÃO: FORMATAR CNPJ (ADICIONAR PONTUAÇÃO)
 -- =====================================================
-CREATE OR REPLACE FUNCTION formatar_cnpj(cnpj_input VARCHAR)
+CREATE OR REPLACE FUNCTION FORMATAR_CNPJ(CNPJ_INPUT VARCHAR)
 RETURNS VARCHAR AS $$
 DECLARE
-cnpj_limpo VARCHAR;
+CNPJ_LIMPO VARCHAR;
 BEGIN
-    -- Remove caracteres não numéricos
-    cnpj_limpo := REGEXP_REPLACE(cnpj_input, '[^0-9]', '', 'g');
+    -- REMOVE CARACTERES NÃO NUMÉRICOS
+    CNPJ_LIMPO := REGEXP_REPLACE(CNPJ_INPUT, '[^0-9]', '', 'G');
 
-    -- Se não tiver 14 dígitos, retorna como está
-    IF LENGTH(cnpj_limpo) != 14 THEN
-        RETURN cnpj_input;
+    -- SE NÃO TIVER 14 DÍGITOS, RETORNA COMO ESTÁ
+    IF LENGTH(CNPJ_LIMPO) != 14 THEN
+        RETURN CNPJ_INPUT;
 END IF;
 
-    -- Formata: 00.000.000/0000-00
-RETURN SUBSTRING(cnpj_limpo, 1, 2) || '.' ||
-       SUBSTRING(cnpj_limpo, 3, 3) || '.' ||
-       SUBSTRING(cnpj_limpo, 6, 3) || '/' ||
-       SUBSTRING(cnpj_limpo, 9, 4) || '-' ||
-       SUBSTRING(cnpj_limpo, 13, 2);
+    -- FORMATA: 00.000.000/0000-00
+RETURN SUBSTRING(CNPJ_LIMPO, 1, 2) || '.' ||
+       SUBSTRING(CNPJ_LIMPO, 3, 3) || '.' ||
+       SUBSTRING(CNPJ_LIMPO, 6, 3) || '/' ||
+       SUBSTRING(CNPJ_LIMPO, 9, 4) || '-' ||
+       SUBSTRING(CNPJ_LIMPO, 13, 2);
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE PLPGSQL IMMUTABLE;
 
-COMMENT ON FUNCTION formatar_cnpj(VARCHAR) IS
-'Formata CNPJ no padrão 00.000.000/0000-00';
+COMMENT ON FUNCTION FORMATAR_CNPJ(VARCHAR) IS
+'FORMATA CNPJ NO PADRÃO 00.000.000/0000-00';
 
 -- =====================================================
--- FUNÇÃO: Gerar número sequencial (formato customizado)
+-- FUNÇÃO: GERAR NÚMERO SEQUENCIAL (FORMATO CUSTOMIZADO)
 -- =====================================================
-CREATE OR REPLACE FUNCTION gerar_numero_sequencial(
-    prefixo VARCHAR,
-    sequence_name VARCHAR,
-    tamanho_numero INTEGER DEFAULT 6
+CREATE OR REPLACE FUNCTION GERAR_NUMERO_SEQUENCIAL(
+    PREFIXO VARCHAR,
+    SEQUENCE_NAME VARCHAR,
+    TAMANHO_NUMERO INTEGER DEFAULT 6
 )
 RETURNS VARCHAR AS $$
 DECLARE
-ano_atual VARCHAR(4);
-    proximo_numero BIGINT;
-    numero_formatado VARCHAR;
+ANO_ATUAL VARCHAR(4);
+    PROXIMO_NUMERO BIGINT;
+    NUMERO_FORMATADO VARCHAR;
 BEGIN
-    -- Pega o ano atual
-    ano_atual := EXTRACT(YEAR FROM CURRENT_DATE)::VARCHAR;
+    -- PEGA O ANO ATUAL
+    ANO_ATUAL := EXTRACT(YEAR FROM CURRENT_DATE)::VARCHAR;
 
-    -- Pega o próximo valor da sequence
-EXECUTE format('SELECT nextval(%L)', sequence_name) INTO proximo_numero;
+    -- PEGA O PRÓXIMO VALOR DA SEQUENCE
+EXECUTE FORMAT('SELECT NEXTVAL(%L)', SEQUENCE_NAME) INTO PROXIMO_NUMERO;
 
--- Formata o número com zeros à esquerda
-numero_formatado := LPAD(proximo_numero::VARCHAR, tamanho_numero, '0');
+-- FORMATA O NÚMERO COM ZEROS À ESQUERDA
+NUMERO_FORMATADO := LPAD(PROXIMO_NUMERO::VARCHAR, TAMANHO_NUMERO, '0');
 
-    -- Retorna no formato: PREFIXO-ANO-NUMERO
-    -- Exemplo: CT-2025-000001
-RETURN prefixo || '-' || ano_atual || '-' || numero_formatado;
+    -- RETORNA NO FORMATO: PREFIXO-ANO-NUMERO
+    -- EXEMPLO: CT-2025-000001
+RETURN PREFIXO || '-' || ANO_ATUAL || '-' || NUMERO_FORMATADO;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-COMMENT ON FUNCTION gerar_numero_sequencial(VARCHAR, VARCHAR, INTEGER) IS
-'Gera números sequenciais no formato PREFIXO-ANO-NUMERO (ex: CT-2025-000001)';
+COMMENT ON FUNCTION GERAR_NUMERO_SEQUENCIAL(VARCHAR, VARCHAR, INTEGER) IS
+'GERA NÚMEROS SEQUENCIAIS NO FORMATO PREFIXO-ANO-NUMERO (EX: CT-2025-000001)';
 
 -- =====================================================
--- FUNÇÃO: Calcular data limite com SLA (apenas horas úteis)
--- Considera: Seg-Sex, 8h-18h, sem feriados
+-- FUNÇÃO: CALCULAR DATA LIMITE COM SLA (APENAS HORAS ÚTEIS)
+-- CONSIDERA: SEG-SEX, 8H-18H, SEM FERIADOS
 -- =====================================================
-CREATE OR REPLACE FUNCTION calcular_data_limite_sla(
-    data_inicio TIMESTAMP,
-    sla_horas INTEGER
+CREATE OR REPLACE FUNCTION CALCULAR_DATA_LIMITE_SLA(
+    DATA_INICIO TIMESTAMP,
+    SLA_HORAS INTEGER
 )
 RETURNS TIMESTAMP AS $$
 DECLARE
-data_atual TIMESTAMP;
-    horas_restantes INTEGER;
-    dia_semana INTEGER;
+DATA_ATUAL TIMESTAMP;
+    HORAS_RESTANTES INTEGER;
+    DIA_SEMANA INTEGER;
 BEGIN
-    data_atual := data_inicio;
-    horas_restantes := sla_horas;
+    DATA_ATUAL := DATA_INICIO;
+    HORAS_RESTANTES := SLA_HORAS;
 
-    -- Se SLA é 0 ou negativo, retorna data_inicio
-    IF sla_horas <= 0 THEN
-        RETURN data_inicio;
+    -- SE SLA É 0 OU NEGATIVO, RETORNA DATA_INICIO
+    IF SLA_HORAS <= 0 THEN
+        RETURN DATA_INICIO;
 END IF;
 
-    WHILE horas_restantes > 0 LOOP
-        -- Avança 1 hora
-        data_atual := data_atual + INTERVAL '1 hour';
+    WHILE HORAS_RESTANTES > 0 LOOP
+        -- AVANÇA 1 HORA
+        DATA_ATUAL := DATA_ATUAL + INTERVAL '1 HOUR';
 
-        -- Pega o dia da semana (0=Domingo, 6=Sábado)
-        dia_semana := EXTRACT(DOW FROM data_atual);
+        -- PEGA O DIA DA SEMANA (0=DOMINGO, 6=SÁBADO)
+        DIA_SEMANA := EXTRACT(DOW FROM DATA_ATUAL);
 
-        -- Se for dia útil (Seg-Sex) e horário comercial (8h-18h)
-        IF dia_semana BETWEEN 1 AND 5 AND
-           EXTRACT(HOUR FROM data_atual) BETWEEN 8 AND 17 THEN
-            horas_restantes := horas_restantes - 1;
+        -- SE FOR DIA ÚTIL (SEG-SEX) E HORÁRIO COMERCIAL (8H-18H)
+        IF DIA_SEMANA BETWEEN 1 AND 5 AND
+           EXTRACT(HOUR FROM DATA_ATUAL) BETWEEN 8 AND 17 THEN
+            HORAS_RESTANTES := HORAS_RESTANTES - 1;
 END IF;
 END LOOP;
 
-RETURN data_atual;
+RETURN DATA_ATUAL;
 END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+$$ LANGUAGE PLPGSQL IMMUTABLE;
 
-COMMENT ON FUNCTION calcular_data_limite_sla(TIMESTAMP, INTEGER) IS
-'Calcula data limite considerando apenas horas úteis (Seg-Sex, 8h-18h)';
+COMMENT ON FUNCTION CALCULAR_DATA_LIMITE_SLA(TIMESTAMP, INTEGER) IS
+'CALCULA DATA LIMITE CONSIDERANDO APENAS HORAS ÚTEIS (SEG-SEX, 8H-18H)';
 
 -- =====================================================
--- FUNÇÃO: Log de auditoria completo (armazena JSON)
+-- FUNÇÃO: LOG DE AUDITORIA COMPLETO (ARMAZENA JSON)
 -- =====================================================
-CREATE OR REPLACE FUNCTION registrar_auditoria()
+CREATE OR REPLACE FUNCTION REGISTRAR_AUDITORIA()
 RETURNS TRIGGER AS $$
 DECLARE
-codigo_usuario_atual BIGINT;
+CODIGO_USUARIO_ATUAL BIGINT;
 BEGIN
-    -- Tenta pegar o código do usuário da sessão
-    -- (será setado pelo backend via SET LOCAL)
+    -- TENTA PEGAR O CÓDIGO DO USUÁRIO DA SESSÃO
+    -- (SERÁ SETADO PELO BACKEND VIA SET LOCAL)
 BEGIN
-        codigo_usuario_atual := CURRENT_SETTING('app.codigo_usuario', TRUE)::BIGINT;
+        CODIGO_USUARIO_ATUAL := CURRENT_SETTING('APP.CODIGO_USUARIO', TRUE)::BIGINT;
 EXCEPTION WHEN OTHERS THEN
-        codigo_usuario_atual := NULL;
+        CODIGO_USUARIO_ATUAL := NULL;
 END;
 
     -- INSERT
     IF (TG_OP = 'INSERT') THEN
-        INSERT INTO auditoria (
-            tabela_auditada,
-            codigo_registro,
-            operacao,
-            codigo_usuario,
-            data_hora_operacao,
-            dados_anteriores,
-            dados_novos
+        INSERT INTO AUDITORIA (
+            TABELA_AUDITADA,
+            CODIGO_REGISTRO,
+            OPERACAO,
+            CODIGO_USUARIO,
+            DATA_HORA_OPERACAO,
+            DADOS_ANTERIORES,
+            DADOS_NOVOS
         ) VALUES (
             TG_TABLE_NAME,
-            (NEW.codigo_cliente)::BIGINT,  -- Ajustar conforme a PK da tabela
+            (NEW.CODIGO_CLIENTE)::BIGINT,  -- AJUSTAR CONFORME A PK DA TABELA
             'INSERT',
-            codigo_usuario_atual,
+            CODIGO_USUARIO_ATUAL,
             CURRENT_TIMESTAMP,
             NULL,
-            row_to_json(NEW)
+            ROW_TO_JSON(NEW)
         );
 RETURN NEW;
 
 -- UPDATE
 ELSIF (TG_OP = 'UPDATE') THEN
-        INSERT INTO auditoria (
-            tabela_auditada,
-            codigo_registro,
-            operacao,
-            codigo_usuario,
-            data_hora_operacao,
-            dados_anteriores,
-            dados_novos
+        INSERT INTO AUDITORIA (
+            TABELA_AUDITADA,
+            CODIGO_REGISTRO,
+            OPERACAO,
+            CODIGO_USUARIO,
+            DATA_HORA_OPERACAO,
+            DADOS_ANTERIORES,
+            DADOS_NOVOS
         ) VALUES (
             TG_TABLE_NAME,
-            (NEW.codigo_cliente)::BIGINT,
+            (NEW.CODIGO_CLIENTE)::BIGINT,
             'UPDATE',
-            codigo_usuario_atual,
+            CODIGO_USUARIO_ATUAL,
             CURRENT_TIMESTAMP,
-            row_to_json(OLD),
-            row_to_json(NEW)
+            ROW_TO_JSON(OLD),
+            ROW_TO_JSON(NEW)
         );
 RETURN NEW;
 
 -- DELETE
 ELSIF (TG_OP = 'DELETE') THEN
-        INSERT INTO auditoria (
-            tabela_auditada,
-            codigo_registro,
-            operacao,
-            codigo_usuario,
-            data_hora_operacao,
-            dados_anteriores,
-            dados_novos
+        INSERT INTO AUDITORIA (
+            TABELA_AUDITADA,
+            CODIGO_REGISTRO,
+            OPERACAO,
+            CODIGO_USUARIO,
+            DATA_HORA_OPERACAO,
+            DADOS_ANTERIORES,
+            DADOS_NOVOS
         ) VALUES (
             TG_TABLE_NAME,
-            (OLD.codigo_cliente)::BIGINT,
+            (OLD.CODIGO_CLIENTE)::BIGINT,
             'DELETE',
-            codigo_usuario_atual,
+            CODIGO_USUARIO_ATUAL,
             CURRENT_TIMESTAMP,
-            row_to_json(OLD),
+            ROW_TO_JSON(OLD),
             NULL
         );
 RETURN OLD;
@@ -235,56 +235,56 @@ END IF;
 
 RETURN NULL;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-COMMENT ON FUNCTION registrar_auditoria() IS
-'Registra todas as operações (INSERT, UPDATE, DELETE) na tabela de auditoria com dados em JSON';
+COMMENT ON FUNCTION REGISTRAR_AUDITORIA() IS
+'REGISTRA TODAS AS OPERAÇÕES (INSERT, UPDATE, DELETE) NA TABELA DE AUDITORIA COM DADOS EM JSON';
 
 -- =====================================================
--- TABELA: Auditoria Global (criada aqui para uso nas triggers)
+-- TABELA: AUDITORIA GLOBAL (CRIADA AQUI PARA USO NAS TRIGGERS)
 -- =====================================================
-CREATE TABLE IF NOT EXISTS auditoria (
-                                         codigo_auditoria    BIGSERIAL PRIMARY KEY,
-                                         tabela_auditada     VARCHAR(100) NOT NULL,
-    codigo_registro     BIGINT NOT NULL,
-    operacao            VARCHAR(20) NOT NULL CHECK (operacao IN ('INSERT', 'UPDATE', 'DELETE')),
-    codigo_usuario      BIGINT,  -- Pode ser NULL se ação do sistema
-    data_hora_operacao  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                                      dados_anteriores    JSONB,  -- NULL para INSERT
-                                      dados_novos         JSONB   -- NULL para DELETE
+CREATE TABLE IF NOT EXISTS AUDITORIA (
+                                         CODIGO_AUDITORIA    BIGSERIAL PRIMARY KEY,
+                                         TABELA_AUDITADA     VARCHAR(100) NOT NULL,
+    CODIGO_REGISTRO     BIGINT NOT NULL,
+    OPERACAO            VARCHAR(20) NOT NULL CHECK (OPERACAO IN ('INSERT', 'UPDATE', 'DELETE')),
+    CODIGO_USUARIO      BIGINT,  -- PODE SER NULL SE AÇÃO DO SISTEMA
+    DATA_HORA_OPERACAO  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                                      DADOS_ANTERIORES    JSONB,  -- NULL PARA INSERT
+                                      DADOS_NOVOS         JSONB   -- NULL PARA DELETE
                                       );
 
--- Índices para consultas rápidas na auditoria
-CREATE INDEX idx_auditoria_tabela_registro ON auditoria(tabela_auditada, codigo_registro);
-CREATE INDEX idx_auditoria_usuario ON auditoria(codigo_usuario);
-CREATE INDEX idx_auditoria_data ON auditoria(data_hora_operacao DESC);
-CREATE INDEX idx_auditoria_operacao ON auditoria(operacao);
+-- ÍNDICES PARA CONSULTAS RÁPIDAS NA AUDITORIA
+CREATE INDEX IDX_AUDITORIA_TABELA_REGISTRO ON AUDITORIA(TABELA_AUDITADA, CODIGO_REGISTRO);
+CREATE INDEX IDX_AUDITORIA_USUARIO ON AUDITORIA(CODIGO_USUARIO);
+CREATE INDEX IDX_AUDITORIA_DATA ON AUDITORIA(DATA_HORA_OPERACAO DESC);
+CREATE INDEX IDX_AUDITORIA_OPERACAO ON AUDITORIA(OPERACAO);
 
-COMMENT ON TABLE auditoria IS
-'Tabela central de auditoria - registra todas as operações críticas do sistema';
+COMMENT ON TABLE AUDITORIA IS
+'TABELA CENTRAL DE AUDITORIA - REGISTRA TODAS AS OPERAÇÕES CRÍTICAS DO SISTEMA';
 
-COMMENT ON COLUMN auditoria.dados_anteriores IS
-'Snapshot do registro ANTES da alteração (JSON completo)';
+COMMENT ON COLUMN AUDITORIA.DADOS_ANTERIORES IS
+'SNAPSHOT DO REGISTRO ANTES DA ALTERAÇÃO (JSON COMPLETO)';
 
-COMMENT ON COLUMN auditoria.dados_novos IS
-'Snapshot do registro DEPOIS da alteração (JSON completo)';
+COMMENT ON COLUMN AUDITORIA.DADOS_NOVOS IS
+'SNAPSHOT DO REGISTRO DEPOIS DA ALTERAÇÃO (JSON COMPLETO)';
 
 -- =====================================================
--- SEQUENCES para numeração sequencial
--- Serão usadas pelas funções de geração de números
+-- SEQUENCES PARA NUMERAÇÃO SEQUENCIAL
+-- SERÃO USADAS PELAS FUNÇÕES DE GERAÇÃO DE NÚMEROS
 -- =====================================================
 
--- Sequence para Contratos
-CREATE SEQUENCE IF NOT EXISTS seq_numero_contrato START 1 INCREMENT 1;
-COMMENT ON SEQUENCE seq_numero_contrato IS 'Sequence para numeração de contratos (CT-2025-000001)';
+-- SEQUENCE PARA CONTRATOS
+CREATE SEQUENCE IF NOT EXISTS SEQ_NUMERO_CONTRATO START 1 INCREMENT 1;
+COMMENT ON SEQUENCE SEQ_NUMERO_CONTRATO IS 'SEQUENCE PARA NUMERAÇÃO DE CONTRATOS (CT-2025-000001)';
 
--- Sequence para Ordens de Serviço
-CREATE SEQUENCE IF NOT EXISTS seq_numero_os START 1 INCREMENT 1;
-COMMENT ON SEQUENCE seq_numero_os IS 'Sequence para numeração de OS (OS-2025-000001)';
+-- SEQUENCE PARA ORDENS DE SERVIÇO
+CREATE SEQUENCE IF NOT EXISTS SEQ_NUMERO_OS START 1 INCREMENT 1;
+COMMENT ON SEQUENCE SEQ_NUMERO_OS IS 'SEQUENCE PARA NUMERAÇÃO DE OS (OS-2025-000001)';
 
--- Sequence para Faturas
-CREATE SEQUENCE IF NOT EXISTS seq_numero_fatura START 1 INCREMENT 1;
-COMMENT ON SEQUENCE seq_numero_fatura IS 'Sequence para numeração de faturas (FAT-2025-000001)';
+-- SEQUENCE PARA FATURAS
+CREATE SEQUENCE IF NOT EXISTS SEQ_NUMERO_FATURA START 1 INCREMENT 1;
+COMMENT ON SEQUENCE SEQ_NUMERO_FATURA IS 'SEQUENCE PARA NUMERAÇÃO DE FATURAS (FAT-2025-000001)';
 
 -- =====================================================
 -- FIM DA MIGRATION V001

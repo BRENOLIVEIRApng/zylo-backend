@@ -1,129 +1,129 @@
 -- FATURAS
-CREATE TABLE faturas (
-                         codigo_fatura BIGSERIAL PRIMARY KEY,
-                         numero_fatura VARCHAR(20) UNIQUE NOT NULL,  -- FAT-2025-000001
-                         codigo_cliente BIGINT NOT NULL,
-                         codigo_contrato BIGINT,
-                         data_emissao DATE NOT NULL,
-                         data_vencimento DATE NOT NULL,
-                         periodo_inicio DATE,
-                         periodo_fim DATE,
-                         valor_total NUMERIC(10,2) NOT NULL,
-                         status_fatura VARCHAR(20) DEFAULT 'PENDENTE' NOT NULL,
-                         data_pagamento DATE,
-                         forma_pagamento VARCHAR(50),
-                         observacoes_fatura TEXT,
-                         gerada_automaticamente BOOLEAN DEFAULT FALSE NOT NULL,
-                         criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                         criado_por BIGINT NOT NULL,
+CREATE TABLE FATURAS (
+                         CODIGO_FATURA BIGSERIAL PRIMARY KEY,
+                         NUMERO_FATURA VARCHAR(20) UNIQUE NOT NULL,  -- FAT-2025-000001
+                         CODIGO_CLIENTE BIGINT NOT NULL,
+                         CODIGO_CONTRATO BIGINT,
+                         DATA_EMISSAO DATE NOT NULL,
+                         DATA_VENCIMENTO DATE NOT NULL,
+                         PERIODO_INICIO DATE,
+                         PERIODO_FIM DATE,
+                         VALOR_TOTAL NUMERIC(10,2) NOT NULL,
+                         STATUS_FATURA VARCHAR(20) DEFAULT 'PENDENTE' NOT NULL,
+                         DATA_PAGAMENTO DATE,
+                         FORMA_PAGAMENTO VARCHAR(50),
+                         OBSERVACOES_FATURA TEXT,
+                         GERADA_AUTOMATICAMENTE BOOLEAN DEFAULT FALSE NOT NULL,
+                         CRIADO_EM TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                         CRIADO_POR BIGINT NOT NULL,
 
-                         CONSTRAINT fk_faturas_cliente FOREIGN KEY (codigo_cliente) REFERENCES clientes(codigo_cliente) ON DELETE RESTRICT,
-                         CONSTRAINT fk_faturas_contrato FOREIGN KEY (codigo_contrato) REFERENCES contratos(codigo_contrato) ON DELETE RESTRICT,
-                         CONSTRAINT fk_faturas_criado_por FOREIGN KEY (criado_por) REFERENCES usuarios(codigo_usuario) ON DELETE RESTRICT,
+                         CONSTRAINT FK_FATURAS_CLIENTE FOREIGN KEY (CODIGO_CLIENTE) REFERENCES CLIENTES(CODIGO_CLIENTE) ON DELETE RESTRICT,
+                         CONSTRAINT FK_FATURAS_CONTRATO FOREIGN KEY (CODIGO_CONTRATO) REFERENCES CONTRATOS(CODIGO_CONTRATO) ON DELETE RESTRICT,
+                         CONSTRAINT FK_FATURAS_CRIADO_POR FOREIGN KEY (CRIADO_POR) REFERENCES USUARIOS(CODIGO_USUARIO) ON DELETE RESTRICT,
 
-                         CONSTRAINT chk_fatura_status CHECK (status_fatura IN ('PENDENTE', 'PAGO', 'ATRASADO', 'CANCELADO')),
-                         CONSTRAINT chk_fatura_valor_positivo CHECK (valor_total >= 0),
-                         CONSTRAINT chk_fatura_datas CHECK (data_vencimento >= data_emissao),
-                         CONSTRAINT chk_fatura_periodo CHECK (periodo_fim IS NULL OR periodo_fim >= periodo_inicio),
-                         CONSTRAINT chk_fatura_pagamento CHECK (
-                             (status_fatura = 'PAGO' AND data_pagamento IS NOT NULL AND forma_pagamento IS NOT NULL) OR
-                             (status_fatura != 'PAGO' AND data_pagamento IS NULL)
+                         CONSTRAINT CHK_FATURA_STATUS CHECK (STATUS_FATURA IN ('PENDENTE', 'PAGO', 'ATRASADO', 'CANCELADO')),
+                         CONSTRAINT CHK_FATURA_VALOR_POSITIVO CHECK (VALOR_TOTAL >= 0),
+                         CONSTRAINT CHK_FATURA_DATAS CHECK (DATA_VENCIMENTO >= DATA_EMISSAO),
+                         CONSTRAINT CHK_FATURA_PERIODO CHECK (PERIODO_FIM IS NULL OR PERIODO_FIM >= PERIODO_INICIO),
+                         CONSTRAINT CHK_FATURA_PAGAMENTO CHECK (
+                             (STATUS_FATURA = 'PAGO' AND DATA_PAGAMENTO IS NOT NULL AND FORMA_PAGAMENTO IS NOT NULL) OR
+                             (STATUS_FATURA != 'PAGO' AND DATA_PAGAMENTO IS NULL)
                              )
 );
 
 -- ÍNDICES
-CREATE UNIQUE INDEX idx_faturas_numero ON faturas(numero_fatura);
-CREATE INDEX idx_faturas_cliente ON faturas(codigo_cliente);
-CREATE INDEX idx_faturas_contrato ON faturas(codigo_contrato);
-CREATE INDEX idx_faturas_status ON faturas(status_fatura);
-CREATE INDEX idx_faturas_vencimento ON faturas(data_vencimento);
-CREATE INDEX idx_faturas_emissao ON faturas(data_emissao DESC);
+CREATE UNIQUE INDEX IDX_FATURAS_NUMERO ON FATURAS(NUMERO_FATURA);
+CREATE INDEX IDX_FATURAS_CLIENTE ON FATURAS(CODIGO_CLIENTE);
+CREATE INDEX IDX_FATURAS_CONTRATO ON FATURAS(CODIGO_CONTRATO);
+CREATE INDEX IDX_FATURAS_STATUS ON FATURAS(STATUS_FATURA);
+CREATE INDEX IDX_FATURAS_VENCIMENTO ON FATURAS(DATA_VENCIMENTO);
+CREATE INDEX IDX_FATURAS_EMISSAO ON FATURAS(DATA_EMISSAO DESC);
 
--- Índice para faturas atrasadas
-CREATE INDEX idx_faturas_atrasadas
-    ON faturas(data_vencimento)
-    WHERE status_fatura IN ('PENDENTE', 'ATRASADO') AND data_vencimento IS NOT NULL;
+-- ÍNDICE PARA FATURAS ATRASADAS
+CREATE INDEX IDX_FATURAS_ATRASADAS
+    ON FATURAS(DATA_VENCIMENTO)
+    WHERE STATUS_FATURA IN ('PENDENTE', 'ATRASADO') AND DATA_VENCIMENTO IS NOT NULL;
 
--- Índice para faturamento mensal
-CREATE INDEX idx_faturas_periodo ON faturas(data_emissao, data_vencimento);
+-- ÍNDICE PARA FATURAMENTO MENSAL
+CREATE INDEX IDX_FATURAS_PERIODO ON FATURAS(DATA_EMISSAO, DATA_VENCIMENTO);
 
 -- ITENS DA FATURA
-CREATE TABLE fatura_itens (
-                              codigo_item BIGSERIAL PRIMARY KEY,
-                              codigo_fatura BIGINT NOT NULL,
-                              codigo_servico BIGINT NOT NULL,
-                              descricao_item VARCHAR(200),
-                              quantidade INTEGER DEFAULT 1 NOT NULL,
-                              valor_unitario NUMERIC(10,2) NOT NULL,
-                              valor_total_item NUMERIC(10,2) NOT NULL,
+CREATE TABLE FATURA_ITENS (
+                              CODIGO_ITEM BIGSERIAL PRIMARY KEY,
+                              CODIGO_FATURA BIGINT NOT NULL,
+                              CODIGO_SERVICO BIGINT NOT NULL,
+                              DESCRICAO_ITEM VARCHAR(200),
+                              QUANTIDADE INTEGER DEFAULT 1 NOT NULL,
+                              VALOR_UNITARIO NUMERIC(10,2) NOT NULL,
+                              VALOR_TOTAL_ITEM NUMERIC(10,2) NOT NULL,
 
-                              CONSTRAINT fk_fatura_itens_fatura FOREIGN KEY (codigo_fatura) REFERENCES faturas(codigo_fatura) ON DELETE CASCADE,
-                              CONSTRAINT fk_fatura_itens_servico FOREIGN KEY (codigo_servico) REFERENCES servicos(codigo_servico) ON DELETE RESTRICT,
+                              CONSTRAINT FK_FATURA_ITENS_FATURA FOREIGN KEY (CODIGO_FATURA) REFERENCES FATURAS(CODIGO_FATURA) ON DELETE CASCADE,
+                              CONSTRAINT FK_FATURA_ITENS_SERVICO FOREIGN KEY (CODIGO_SERVICO) REFERENCES SERVICOS(CODIGO_SERVICO) ON DELETE RESTRICT,
 
-                              CONSTRAINT chk_item_quantidade_positiva CHECK (quantidade > 0),
-                              CONSTRAINT chk_item_valor_unitario CHECK (valor_unitario >= 0),
-                              CONSTRAINT chk_item_valor_total CHECK (valor_total_item = valor_unitario * quantidade)
+                              CONSTRAINT CHK_ITEM_QUANTIDADE_POSITIVA CHECK (QUANTIDADE > 0),
+                              CONSTRAINT CHK_ITEM_VALOR_UNITARIO CHECK (VALOR_UNITARIO >= 0),
+                              CONSTRAINT CHK_ITEM_VALOR_TOTAL CHECK (VALOR_TOTAL_ITEM = VALOR_UNITARIO * QUANTIDADE)
 );
 
-CREATE INDEX idx_fatura_itens_fatura ON fatura_itens(codigo_fatura);
+CREATE INDEX IDX_FATURA_ITENS_FATURA ON FATURA_ITENS(CODIGO_FATURA);
 
 -- VINCULAÇÃO FATURA <-> OS
-CREATE TABLE fatura_os (
-                           codigo_fatura BIGINT NOT NULL,
-                           codigo_os BIGINT NOT NULL,
+CREATE TABLE FATURA_OS (
+                           CODIGO_FATURA BIGINT NOT NULL,
+                           CODIGO_OS BIGINT NOT NULL,
 
-                           PRIMARY KEY (codigo_fatura, codigo_os),
+                           PRIMARY KEY (CODIGO_FATURA, CODIGO_OS),
 
-                           CONSTRAINT fk_fatura_os_fatura FOREIGN KEY (codigo_fatura) REFERENCES faturas(codigo_fatura) ON DELETE CASCADE,
-                           CONSTRAINT fk_fatura_os_os FOREIGN KEY (codigo_os) REFERENCES ordens_servico(codigo_os) ON DELETE CASCADE
+                           CONSTRAINT FK_FATURA_OS_FATURA FOREIGN KEY (CODIGO_FATURA) REFERENCES FATURAS(CODIGO_FATURA) ON DELETE CASCADE,
+                           CONSTRAINT FK_FATURA_OS_OS FOREIGN KEY (CODIGO_OS) REFERENCES ORDENS_SERVICO(CODIGO_OS) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_fatura_os_fatura ON fatura_os(codigo_fatura);
-CREATE INDEX idx_fatura_os_os ON fatura_os(codigo_os);
+CREATE INDEX IDX_FATURA_OS_FATURA ON FATURA_OS(CODIGO_FATURA);
+CREATE INDEX IDX_FATURA_OS_OS ON FATURA_OS(CODIGO_OS);
 
--- TRIGGER: Gerar número da fatura
-CREATE OR REPLACE FUNCTION gerar_numero_fatura()
+-- TRIGGER: GERAR NÚMERO DA FATURA
+CREATE OR REPLACE FUNCTION GERAR_NUMERO_FATURA()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.numero_fatura IS NULL OR NEW.numero_fatura = '' THEN
-        NEW.numero_fatura := gerar_numero_sequencial('FAT', 'seq_numero_fatura', 6);
+    IF NEW.NUMERO_FATURA IS NULL OR NEW.NUMERO_FATURA = '' THEN
+        NEW.NUMERO_FATURA := GERAR_NUMERO_SEQUENCIAL('FAT', 'SEQ_NUMERO_FATURA', 6);
 END IF;
 RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-CREATE TRIGGER trg_faturas_gerar_numero
-    BEFORE INSERT ON faturas
+CREATE TRIGGER TRG_FATURAS_GERAR_NUMERO
+    BEFORE INSERT ON FATURAS
     FOR EACH ROW
-    EXECUTE FUNCTION gerar_numero_fatura();
+    EXECUTE FUNCTION GERAR_NUMERO_FATURA();
 
--- TRIGGER: Recalcular valor total da fatura
-CREATE OR REPLACE FUNCTION recalcular_valor_total_fatura()
+-- TRIGGER: RECALCULAR VALOR TOTAL DA FATURA
+CREATE OR REPLACE FUNCTION RECALCULAR_VALOR_TOTAL_FATURA()
 RETURNS TRIGGER AS $$
 DECLARE
-novo_valor_total NUMERIC(10,2);
+NOVO_VALOR_TOTAL NUMERIC(10,2);
 BEGIN
-SELECT COALESCE(SUM(valor_total_item), 0)
-INTO novo_valor_total
-FROM fatura_itens
-WHERE codigo_fatura = COALESCE(NEW.codigo_fatura, OLD.codigo_fatura);
+SELECT COALESCE(SUM(VALOR_TOTAL_ITEM), 0)
+INTO NOVO_VALOR_TOTAL
+FROM FATURA_ITENS
+WHERE CODIGO_FATURA = COALESCE(NEW.CODIGO_FATURA, OLD.CODIGO_FATURA);
 
-UPDATE faturas
-SET valor_total = novo_valor_total
-WHERE codigo_fatura = COALESCE(NEW.codigo_fatura, OLD.codigo_fatura);
+UPDATE FATURAS
+SET VALOR_TOTAL = NOVO_VALOR_TOTAL
+WHERE CODIGO_FATURA = COALESCE(NEW.CODIGO_FATURA, OLD.CODIGO_FATURA);
 
 RETURN COALESCE(NEW, OLD);
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-CREATE TRIGGER trg_fatura_itens_recalcular_valor_insert
-    AFTER INSERT ON fatura_itens FOR EACH ROW EXECUTE FUNCTION recalcular_valor_total_fatura();
+CREATE TRIGGER TRG_FATURA_ITENS_RECALCULAR_VALOR_INSERT
+    AFTER INSERT ON FATURA_ITENS FOR EACH ROW EXECUTE FUNCTION RECALCULAR_VALOR_TOTAL_FATURA();
 
-CREATE TRIGGER trg_fatura_itens_recalcular_valor_update
-    AFTER UPDATE ON fatura_itens FOR EACH ROW EXECUTE FUNCTION recalcular_valor_total_fatura();
+CREATE TRIGGER TRG_FATURA_ITENS_RECALCULAR_VALOR_UPDATE
+    AFTER UPDATE ON FATURA_ITENS FOR EACH ROW EXECUTE FUNCTION RECALCULAR_VALOR_TOTAL_FATURA();
 
-CREATE TRIGGER trg_fatura_itens_recalcular_valor_delete
-    AFTER DELETE ON fatura_itens FOR EACH ROW EXECUTE FUNCTION recalcular_valor_total_fatura();
+CREATE TRIGGER TRG_FATURA_ITENS_RECALCULAR_VALOR_DELETE
+    AFTER DELETE ON FATURA_ITENS FOR EACH ROW EXECUTE FUNCTION RECALCULAR_VALOR_TOTAL_FATURA();
 
--- TRIGGER: Atualizar status para ATRASADO automaticamente
--- (Será executado por JOB diário no backend, não trigger por performance)
+-- TRIGGER: ATUALIZAR STATUS PARA ATRASADO AUTOMATICAMENTE
+-- (SERÁ EXECUTADO POR JOB DIÁRIO NO BACKEND, NÃO TRIGGER POR PERFORMANCE)

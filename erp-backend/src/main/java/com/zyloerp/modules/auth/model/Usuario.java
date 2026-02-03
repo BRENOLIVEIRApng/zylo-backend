@@ -22,27 +22,27 @@ public class Usuario extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo_usuario")
+    @Column(name = "CODIGO_USUARIO")
     private Long codigoUsuario;
 
-    @Column(name = "nome_completo", nullable = false, length = 100)
+    @Column(name = "NOME_COMPLETO", nullable = false, length = 100)
     private String nomeCompleto;
 
-    @Column(name = "email", nullable = false, unique = true, length = 100)
+    @Column(name = "EMAIL", nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(name = "senha_hash", nullable = false, length = 255)
+    @Column(name = "SENHA_HASH", nullable = false, length = 255)
     private String senhaHash;
 
-    @Column(name = "ativo", nullable = false)
+    @Column(name = "ATIVO", nullable = false)
     @Builder.Default
     private Boolean ativo = true;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "codigo_perfil", nullable = false)
+    @JoinColumn(name = "CODIGO_PERFIL", nullable = false)
     private Perfil perfil;
 
-    @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "USUARIO", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Builder.Default
     private List<HistoricoAcesso> historicoAcessos = new ArrayList<>();
 

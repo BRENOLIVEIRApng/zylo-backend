@@ -23,44 +23,44 @@ public class Contrato extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo_contrato")
+    @Column(name = "CODIGO_CONTRATO")
     private Long codigoContrato;
 
-    @Column(name = "numero_contrato", unique = true, length = 20)
+    @Column(name = "NUMERO_CONTRATO", unique = true, length = 20)
     private String numeroContrato;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "codigo_cliente", nullable = false)
+    @JoinColumn(name = "CODIGO_CLIENTE", nullable = false)
     private Cliente cliente;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_contrato", nullable = false, length = 30)
+    @Column(name = "TIPO_CONTRATO", nullable = false, length = 30)
     private TipoContrato tipoContrato;
 
-    @Column(name = "valor_total", nullable = false, precision = 10, scale = 2)
+    @Column(name = "VALOR_TOTAL", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorTotal;
 
-    @Column(name = "data_inicio", nullable = false)
+    @Column(name = "DATA_INICIO", nullable = false)
     private LocalDate dataInicio;
 
-    @Column(name = "data_fim", nullable = false)
+    @Column(name = "DATA_FIM", nullable = false)
     private LocalDate dataFim;
 
-    @Column(name = "duracao_meses")
+    @Column(name = "DURACAO_MESES")
     private Integer duracaoMeses;
 
-    @Column(name = "sla_horas")
+    @Column(name = "SLA_HORAS")
     private Integer slaHoras;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status_contrato", nullable = false, length = 20)
+    @Column(name = "STATUS_CONTRATO", nullable = false, length = 20)
     @Builder.Default
     private StatusContrato statusContrato = StatusContrato.ATIVO;
 
-    @Column(name = "observacoes", columnDefinition = "TEXT")
+    @Column(name = "OBSERVACOES", columnDefinition = "TEXT")
     private String observacoes;
 
-    @OneToMany(mappedBy = "contrato", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "CONTRATO", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<ContratoServico> servicos = new HashSet<>();
 

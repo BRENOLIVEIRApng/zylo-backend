@@ -5,10 +5,10 @@ import lombok.*;
 
 @Entity
 @Table(
-        name = "permissoes",
+        name = "PERMISSOES",
         uniqueConstraints = @UniqueConstraint(
-            name = "uk_permissoes_modulo_acao",
-            columnNames = {"modulo", "acao"}
+            name = "UK_PERMISSOES_MODULO_ACAO",
+            columnNames = {"MODULO", "ACAO"}
         )
 )
 @Getter
@@ -20,16 +20,16 @@ public class Permissao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo_permissao")
+    @Column(name = "CODIGO_PERMISSAO")
     private Long codigoPermissao;
 
-    @Column(name = "modulo", nullable = false, length = 50)
+    @Column(name = "MODULO", nullable = false, length = 50)
     private String modulo;
 
-    @Column(name = "acao", nullable = false, length = 20)
+    @Column(name = "ACAO", nullable = false, length = 20)
     private String acao;
 
-    @Column(name = "descricao_permissao", columnDefinition = "TEXT")
+    @Column(name = "DESCRICAO_PERMISSAO", columnDefinition = "TEXT")
     private String descricaoPermissao;
 
     public String getAuthority() {

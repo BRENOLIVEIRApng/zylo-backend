@@ -1,253 +1,253 @@
 -- =====================================================
--- V004__criar_tabelas_servicos_contratos.sql
--- Descrição: Catálogo de serviços e gestão de contratos
--- Autor: ERP Portal Team
--- Data: 2025-01-10
+-- V004__CRIAR_TABELAS_SERVICOS_CONTRATOS.SQL
+-- DESCRIÇÃO: CATÁLOGO DE SERVIÇOS E GESTÃO DE CONTRATOS
+-- AUTOR: ERP PORTAL TEAM
+-- DATA: 2025-01-10
 -- =====================================================
 
 -- =====================================================
--- TABELA: Serviços (Catálogo)
+-- TABELA: SERVIÇOS (CATÁLOGO)
 -- =====================================================
-CREATE TABLE servicos (
-                          codigo_servico          BIGSERIAL PRIMARY KEY,
+CREATE TABLE SERVICOS (
+                          CODIGO_SERVICO          BIGSERIAL PRIMARY KEY,
 
-    -- Identificação
-                          nome_servico            VARCHAR(200) NOT NULL,
-                          descricao_servico       TEXT,
+    -- IDENTIFICAÇÃO
+                          NOME_SERVICO            VARCHAR(200) NOT NULL,
+                          DESCRICAO_SERVICO       TEXT,
 
-    -- Precificação
-                          tipo_cobranca           VARCHAR(30) NOT NULL,
-                          valor_base              NUMERIC(10,2) NOT NULL,  -- Valor padrão (pode ser alterado no contrato)
+    -- PRECIFICAÇÃO
+                          TIPO_COBRANCA           VARCHAR(30) NOT NULL,
+                          VALOR_BASE              NUMERIC(10,2) NOT NULL,  -- VALOR PADRÃO (PODE SER ALTERADO NO CONTRATO)
 
     -- SLA
-                          sla_horas               INTEGER,  -- SLA padrão em horas
+                          SLA_HORAS               INTEGER,  -- SLA PADRÃO EM HORAS
 
-    -- Categorização
-                          categoria               VARCHAR(50),
+    -- CATEGORIZAÇÃO
+                          CATEGORIA               VARCHAR(50),
 
-    -- Status
-                          ativo                   BOOLEAN DEFAULT TRUE NOT NULL,
+    -- STATUS
+                          ATIVO                   BOOLEAN DEFAULT TRUE NOT NULL,
 
-    -- Auditoria
-                          criado_em               TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                          atualizado_em           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    -- AUDITORIA
+                          CRIADO_EM               TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                          ATUALIZADO_EM           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
-    -- Constraints
-                          CONSTRAINT chk_servico_tipo_cobranca CHECK (
-                              tipo_cobranca IN ('MENSALIDADE', 'PROJETO_FECHADO', 'HORAS_CONTRATADAS', 'SOB_DEMANDA')
+    -- CONSTRAINTS
+                          CONSTRAINT CHK_SERVICO_TIPO_COBRANCA CHECK (
+                              TIPO_COBRANCA IN ('MENSALIDADE', 'PROJETO_FECHADO', 'HORAS_CONTRATADAS', 'SOB_DEMANDA')
                               ),
 
-                          CONSTRAINT chk_servico_categoria CHECK (
-                              categoria IS NULL OR categoria IN ('DESENVOLVIMENTO', 'SUPORTE', 'CONSULTORIA', 'INFRAESTRUTURA')
+                          CONSTRAINT CHK_SERVICO_CATEGORIA CHECK (
+                              CATEGORIA IS NULL OR CATEGORIA IN ('DESENVOLVIMENTO', 'SUPORTE', 'CONSULTORIA', 'INFRAESTRUTURA')
                               ),
 
-                          CONSTRAINT chk_servico_valor_positivo CHECK (valor_base >= 0),
+                          CONSTRAINT CHK_SERVICO_VALOR_POSITIVO CHECK (VALOR_BASE >= 0),
 
-                          CONSTRAINT chk_servico_sla_positivo CHECK (sla_horas IS NULL OR sla_horas > 0),
+                          CONSTRAINT CHK_SERVICO_SLA_POSITIVO CHECK (SLA_HORAS IS NULL OR SLA_HORAS > 0),
 
-                          CONSTRAINT chk_servico_nome_minimo CHECK (LENGTH(TRIM(nome_servico)) >= 3)
+                          CONSTRAINT CHK_SERVICO_NOME_MINIMO CHECK (LENGTH(TRIM(NOME_SERVICO)) >= 3)
 );
 
 -- =====================================================
--- ÍNDICES - Serviços
+-- ÍNDICES - SERVIÇOS
 -- =====================================================
-CREATE INDEX idx_servicos_ativo ON servicos(ativo) WHERE ativo = TRUE;
-CREATE INDEX idx_servicos_categoria ON servicos(categoria);
-CREATE INDEX idx_servicos_tipo_cobranca ON servicos(tipo_cobranca);
-CREATE INDEX idx_servicos_nome_lower ON servicos(LOWER(nome_servico));
+CREATE INDEX IDX_SERVICOS_ATIVO ON SERVICOS(ATIVO) WHERE ATIVO = TRUE;
+CREATE INDEX IDX_SERVICOS_CATEGORIA ON SERVICOS(CATEGORIA);
+CREATE INDEX IDX_SERVICOS_TIPO_COBRANCA ON SERVICOS(TIPO_COBRANCA);
+CREATE INDEX IDX_SERVICOS_NOME_LOWER ON SERVICOS(LOWER(NOME_SERVICO));
 
--- Índice para listagem padrão (ativos ordenados por nome)
-CREATE INDEX idx_servicos_listagem ON servicos(ativo, nome_servico) WHERE ativo = TRUE;
+-- ÍNDICE PARA LISTAGEM PADRÃO (ATIVOS ORDENADOS POR NOME)
+CREATE INDEX IDX_SERVICOS_LISTAGEM ON SERVICOS(ATIVO, NOME_SERVICO) WHERE ATIVO = TRUE;
 
-COMMENT ON TABLE servicos IS
-'Catálogo de serviços oferecidos pela software house';
+COMMENT ON TABLE SERVICOS IS
+'CATÁLOGO DE SERVIÇOS OFERECIDOS PELA SOFTWARE HOUSE';
 
-COMMENT ON COLUMN servicos.tipo_cobranca IS
-'MENSALIDADE: recorrente mensal | PROJETO_FECHADO: valor fixo | HORAS_CONTRATADAS: por hora | SOB_DEMANDA: não recorrente';
+COMMENT ON COLUMN SERVICOS.TIPO_COBRANCA IS
+'MENSALIDADE: RECORRENTE MENSAL | PROJETO_FECHADO: VALOR FIXO | HORAS_CONTRATADAS: POR HORA | SOB_DEMANDA: NÃO RECORRENTE';
 
-COMMENT ON COLUMN servicos.valor_base IS
-'Valor padrão do serviço. Pode ser customizado no contrato.';
+COMMENT ON COLUMN SERVICOS.VALOR_BASE IS
+'VALOR PADRÃO DO SERVIÇO. PODE SER CUSTOMIZADO NO CONTRATO.';
 
 -- =====================================================
--- TABELA: Contratos
+-- TABELA: CONTRATOS
 -- =====================================================
-CREATE TABLE contratos (
-                           codigo_contrato         BIGSERIAL PRIMARY KEY,
+CREATE TABLE CONTRATOS (
+                           CODIGO_CONTRATO         BIGSERIAL PRIMARY KEY,
 
-    -- Identificação
-                           numero_contrato         VARCHAR(20) UNIQUE NOT NULL,  -- Gerado: CT-2025-000001
-                           codigo_cliente          BIGINT NOT NULL,
+    -- IDENTIFICAÇÃO
+                           NUMERO_CONTRATO         VARCHAR(20) UNIQUE NOT NULL,  -- GERADO: CT-2025-000001
+                           CODIGO_CLIENTE          BIGINT NOT NULL,
 
-    -- Tipo e Valor
-                           tipo_contrato           VARCHAR(30) NOT NULL,
-                           valor_total             NUMERIC(10,2) NOT NULL,
+    -- TIPO E VALOR
+                           TIPO_CONTRATO           VARCHAR(30) NOT NULL,
+                           VALOR_TOTAL             NUMERIC(10,2) NOT NULL,
 
-    -- Vigência
-                           data_inicio             DATE NOT NULL,
-                           data_fim                DATE NOT NULL,
-                           duracao_meses           INTEGER,  -- Para contratos mensais
+    -- VIGÊNCIA
+                           DATA_INICIO             DATE NOT NULL,
+                           DATA_FIM                DATE NOT NULL,
+                           DURACAO_MESES           INTEGER,  -- PARA CONTRATOS MENSAIS
 
     -- SLA
-                           sla_horas               INTEGER,  -- Sobrescreve SLA dos serviços se definido
+                           SLA_HORAS               INTEGER,  -- SOBRESCREVE SLA DOS SERVIÇOS SE DEFINIDO
 
-    -- Status
-                           status_contrato         VARCHAR(20) DEFAULT 'ATIVO' NOT NULL,
+    -- STATUS
+                           STATUS_CONTRATO         VARCHAR(20) DEFAULT 'ATIVO' NOT NULL,
 
-    -- Observações
-                           observacoes             TEXT,
+    -- OBSERVAÇÕES
+                           OBSERVACOES             TEXT,
 
-    -- Auditoria Completa
-                           criado_em               TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                           criado_por              BIGINT NOT NULL,
-                           atualizado_em           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                           atualizado_por          BIGINT NOT NULL,
-                           excluido_em             TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
-                           excluido_por            BIGINT NOT NULL,
+    -- AUDITORIA COMPLETA
+                           CRIADO_EM               TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                           CRIADO_POR              BIGINT NOT NULL,
+                           ATUALIZADO_EM           TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                           ATUALIZADO_POR          BIGINT NOT NULL,
+                           EXCLUIDO_EM             TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+                           EXCLUIDO_POR            BIGINT NOT NULL,
 
-    -- Foreign Keys
-                           CONSTRAINT fk_contratos_cliente
-                               FOREIGN KEY (codigo_cliente)
-                                   REFERENCES clientes(codigo_cliente)
-                                   ON DELETE RESTRICT,  -- Não permite excluir cliente com contratos
+    -- FOREIGN KEYS
+                           CONSTRAINT FK_CONTRATOS_CLIENTE
+                               FOREIGN KEY (CODIGO_CLIENTE)
+                                   REFERENCES CLIENTES(CODIGO_CLIENTE)
+                                   ON DELETE RESTRICT,  -- NÃO PERMITE EXCLUIR CLIENTE COM CONTRATOS
 
-                           CONSTRAINT fk_contratos_criado_por
-                               FOREIGN KEY (criado_por)
-                                   REFERENCES usuarios(codigo_usuario)
+                           CONSTRAINT FK_CONTRATOS_CRIADO_POR
+                               FOREIGN KEY (CRIADO_POR)
+                                   REFERENCES USUARIOS(CODIGO_USUARIO)
                                    ON DELETE RESTRICT,
 
-                           CONSTRAINT fk_contratos_atualizado_por
-                               FOREIGN KEY (atualizado_por)
-                                   REFERENCES usuarios(codigo_usuario)
+                           CONSTRAINT FK_CONTRATOS_ATUALIZADO_POR
+                               FOREIGN KEY (ATUALIZADO_POR)
+                                   REFERENCES USUARIOS(CODIGO_USUARIO)
                                    ON DELETE RESTRICT,
 
-    -- Constraints de Validação
-                           CONSTRAINT chk_contrato_tipo CHECK (
-                               tipo_contrato IN ('MENSALIDADE', 'PROJETO_FECHADO', 'HORAS_CONTRATADAS')
+    -- CONSTRAINTS DE VALIDAÇÃO
+                           CONSTRAINT CHK_CONTRATO_TIPO CHECK (
+                               TIPO_CONTRATO IN ('MENSALIDADE', 'PROJETO_FECHADO', 'HORAS_CONTRATADAS')
                                ),
 
-                           CONSTRAINT chk_contrato_status CHECK (
-                               status_contrato IN ('ATIVO', 'SUSPENSO', 'ENCERRADO', 'CANCELADO')
+                           CONSTRAINT CHK_CONTRATO_STATUS CHECK (
+                               STATUS_CONTRATO IN ('ATIVO', 'SUSPENSO', 'ENCERRADO', 'CANCELADO')
                                ),
 
-                           CONSTRAINT chk_contrato_valor_positivo CHECK (valor_total >= 0),
+                           CONSTRAINT CHK_CONTRATO_VALOR_POSITIVO CHECK (VALOR_TOTAL >= 0),
 
-                           CONSTRAINT chk_contrato_datas CHECK (data_fim >= data_inicio),
+                           CONSTRAINT CHK_CONTRATO_DATAS CHECK (DATA_FIM >= DATA_INICIO),
 
-                           CONSTRAINT chk_contrato_duracao_positiva CHECK (
-                               duracao_meses IS NULL OR duracao_meses > 0
+                           CONSTRAINT CHK_CONTRATO_DURACAO_POSITIVA CHECK (
+                               DURACAO_MESES IS NULL OR DURACAO_MESES > 0
                                ),
 
-                           CONSTRAINT chk_contrato_sla_positivo CHECK (
-                               sla_horas IS NULL OR sla_horas > 0
+                           CONSTRAINT CHK_CONTRATO_SLA_POSITIVO CHECK (
+                               SLA_HORAS IS NULL OR SLA_HORAS > 0
                                )
 );
 
 -- =====================================================
--- ÍNDICES - Contratos
+-- ÍNDICES - CONTRATOS
 -- =====================================================
-CREATE UNIQUE INDEX idx_contratos_numero ON contratos(numero_contrato);
-CREATE INDEX idx_contratos_cliente ON contratos(codigo_cliente);
-CREATE INDEX idx_contratos_status ON contratos(status_contrato);
-CREATE INDEX idx_contratos_vigencia ON contratos(data_inicio, data_fim);
-CREATE INDEX idx_contratos_tipo ON contratos(tipo_contrato);
+CREATE UNIQUE INDEX IDX_CONTRATOS_NUMERO ON CONTRATOS(NUMERO_CONTRATO);
+CREATE INDEX IDX_CONTRATOS_CLIENTE ON CONTRATOS(CODIGO_CLIENTE);
+CREATE INDEX IDX_CONTRATOS_STATUS ON CONTRATOS(STATUS_CONTRATO);
+CREATE INDEX IDX_CONTRATOS_VIGENCIA ON CONTRATOS(DATA_INICIO, DATA_FIM);
+CREATE INDEX IDX_CONTRATOS_TIPO ON CONTRATOS(TIPO_CONTRATO);
 
--- Índice para contratos ativos de um cliente
-CREATE INDEX idx_contratos_cliente_ativo
-    ON contratos(codigo_cliente, status_contrato)
-    WHERE status_contrato = 'ATIVO';
+-- ÍNDICE PARA CONTRATOS ATIVOS DE UM CLIENTE
+CREATE INDEX IDX_CONTRATOS_CLIENTE_ATIVO
+    ON CONTRATOS(CODIGO_CLIENTE, STATUS_CONTRATO)
+    WHERE STATUS_CONTRATO = 'ATIVO';
 
--- Índice para contratos que vencem em breve
-CREATE INDEX idx_contratos_vencimento
-    ON contratos(data_fim)
-    WHERE status_contrato = 'ATIVO';
+-- ÍNDICE PARA CONTRATOS QUE VENCEM EM BREVE
+CREATE INDEX IDX_CONTRATOS_VENCIMENTO
+    ON CONTRATOS(DATA_FIM)
+    WHERE STATUS_CONTRATO = 'ATIVO';
 
--- Índice para auditoria
-CREATE INDEX idx_contratos_auditoria ON contratos(criado_por, atualizado_por);
+-- ÍNDICE PARA AUDITORIA
+CREATE INDEX IDX_CONTRATOS_AUDITORIA ON CONTRATOS(CRIADO_POR, ATUALIZADO_POR);
 
-COMMENT ON TABLE contratos IS
-'Contratos firmados com clientes (mensalidades, projetos, horas contratadas)';
+COMMENT ON TABLE CONTRATOS IS
+'CONTRATOS FIRMADOS COM CLIENTES (MENSALIDADES, PROJETOS, HORAS CONTRATADAS)';
 
-COMMENT ON COLUMN contratos.numero_contrato IS
-'Número único do contrato no formato CT-2025-000001 (gerado automaticamente)';
+COMMENT ON COLUMN CONTRATOS.NUMERO_CONTRATO IS
+'NÚMERO ÚNICO DO CONTRATO NO FORMATO CT-2025-000001 (GERADO AUTOMATICAMENTE)';
 
-COMMENT ON COLUMN contratos.status_contrato IS
-'ATIVO: em vigência | SUSPENSO: pausado temporariamente | ENCERRADO: finalizado naturalmente | CANCELADO: encerrado antes do prazo';
+COMMENT ON COLUMN CONTRATOS.STATUS_CONTRATO IS
+'ATIVO: EM VIGÊNCIA | SUSPENSO: PAUSADO TEMPORARIAMENTE | ENCERRADO: FINALIZADO NATURALMENTE | CANCELADO: ENCERRADO ANTES DO PRAZO';
 
 -- =====================================================
--- TABELA: Contrato_Servicos (N:N com valores customizados)
+-- TABELA: CONTRATO_SERVICOS (N:N COM VALORES CUSTOMIZADOS)
 -- =====================================================
-CREATE TABLE contrato_servicos (
-                                   codigo_contrato_servico BIGSERIAL PRIMARY KEY,
-                                   codigo_contrato         BIGINT NOT NULL,
-                                   codigo_servico          BIGINT NOT NULL,
+CREATE TABLE CONTRATO_SERVICOS (
+                                   CODIGO_CONTRATO_SERVICO BIGSERIAL PRIMARY KEY,
+                                   CODIGO_CONTRATO         BIGINT NOT NULL,
+                                   CODIGO_SERVICO          BIGINT NOT NULL,
 
-    -- Valor customizado (pode ser diferente do valor_base do serviço)
-                                   valor_servico           NUMERIC(10,2) NOT NULL,
-                                   quantidade              INTEGER DEFAULT 1 NOT NULL,
+    -- VALOR CUSTOMIZADO (PODE SER DIFERENTE DO VALOR_BASE DO SERVIÇO)
+                                   VALOR_SERVICO           NUMERIC(10,2) NOT NULL,
+                                   QUANTIDADE              INTEGER DEFAULT 1 NOT NULL,
 
-    -- Foreign Keys
-                                   CONSTRAINT fk_contrato_servicos_contrato
-                                       FOREIGN KEY (codigo_contrato)
-                                           REFERENCES contratos(codigo_contrato)
-                                           ON DELETE CASCADE,  -- Se contrato é excluído, serviços vinculados também
+    -- FOREIGN KEYS
+                                   CONSTRAINT FK_CONTRATO_SERVICOS_CONTRATO
+                                       FOREIGN KEY (CODIGO_CONTRATO)
+                                           REFERENCES CONTRATOS(CODIGO_CONTRATO)
+                                           ON DELETE CASCADE,  -- SE CONTRATO É EXCLUÍDO, SERVIÇOS VINCULADOS TAMBÉM
 
-                                   CONSTRAINT fk_contrato_servicos_servico
-                                       FOREIGN KEY (codigo_servico)
-                                           REFERENCES servicos(codigo_servico)
-                                           ON DELETE RESTRICT,  -- Não permite excluir serviço vinculado a contrato
+                                   CONSTRAINT FK_CONTRATO_SERVICOS_SERVICO
+                                       FOREIGN KEY (CODIGO_SERVICO)
+                                           REFERENCES SERVICOS(CODIGO_SERVICO)
+                                           ON DELETE RESTRICT,  -- NÃO PERMITE EXCLUIR SERVIÇO VINCULADO A CONTRATO
 
-    -- Constraints
-                                   CONSTRAINT uk_contrato_servico UNIQUE (codigo_contrato, codigo_servico),
+    -- CONSTRAINTS
+                                   CONSTRAINT UK_CONTRATO_SERVICO UNIQUE (CODIGO_CONTRATO, CODIGO_SERVICO),
 
-                                   CONSTRAINT chk_contrato_servico_valor_positivo CHECK (valor_servico >= 0),
+                                   CONSTRAINT CHK_CONTRATO_SERVICO_VALOR_POSITIVO CHECK (VALOR_SERVICO >= 0),
 
-                                   CONSTRAINT chk_contrato_servico_quantidade_positiva CHECK (quantidade > 0)
+                                   CONSTRAINT CHK_CONTRATO_SERVICO_QUANTIDADE_POSITIVA CHECK (QUANTIDADE > 0)
 );
 
 -- =====================================================
--- ÍNDICES - Contrato Servicos
+-- ÍNDICES - CONTRATO SERVICOS
 -- =====================================================
-CREATE INDEX idx_contrato_servicos_contrato ON contrato_servicos(codigo_contrato);
-CREATE INDEX idx_contrato_servicos_servico ON contrato_servicos(codigo_servico);
+CREATE INDEX IDX_CONTRATO_SERVICOS_CONTRATO ON CONTRATO_SERVICOS(CODIGO_CONTRATO);
+CREATE INDEX IDX_CONTRATO_SERVICOS_SERVICO ON CONTRATO_SERVICOS(CODIGO_SERVICO);
 
-COMMENT ON TABLE contrato_servicos IS
-'Serviços inclusos em cada contrato (com valores customizados por contrato)';
+COMMENT ON TABLE CONTRATO_SERVICOS IS
+'SERVIÇOS INCLUSOS EM CADA CONTRATO (COM VALORES CUSTOMIZADOS POR CONTRATO)';
 
-COMMENT ON COLUMN contrato_servicos.valor_servico IS
-'Valor do serviço NESTE contrato (pode ser diferente do valor_base do catálogo)';
+COMMENT ON COLUMN CONTRATO_SERVICOS.VALOR_SERVICO IS
+'VALOR DO SERVIÇO NESTE CONTRATO (PODE SER DIFERENTE DO VALOR_BASE DO CATÁLOGO)';
 
-COMMENT ON COLUMN contrato_servicos.quantidade IS
-'Quantidade de unidades (útil para "horas contratadas", "licenças", etc)';
+COMMENT ON COLUMN CONTRATO_SERVICOS.QUANTIDADE IS
+'QUANTIDADE DE UNIDADES (ÚTIL PARA "HORAS CONTRATADAS", "LICENÇAS", ETC)';
 
 -- =====================================================
--- TABELA: Histórico de Contratos (Auditoria)
+-- TABELA: HISTÓRICO DE CONTRATOS (AUDITORIA)
 -- =====================================================
-CREATE TABLE historico_contratos (
-                                     codigo_historico        BIGSERIAL PRIMARY KEY,
-                                     codigo_contrato         BIGINT NOT NULL,
+CREATE TABLE HISTORICO_CONTRATOS (
+                                     CODIGO_HISTORICO        BIGSERIAL PRIMARY KEY,
+                                     CODIGO_CONTRATO         BIGINT NOT NULL,
 
-    -- Tipo de Alteração
-                                     tipo_alteracao          VARCHAR(50) NOT NULL,
-                                     descricao_alteracao     TEXT,
+    -- TIPO DE ALTERAÇÃO
+                                     TIPO_ALTERACAO          VARCHAR(50) NOT NULL,
+                                     DESCRICAO_ALTERACAO     TEXT,
 
-    -- Quem e Quando
-                                     codigo_usuario          BIGINT,
-                                     data_hora_alteracao     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    -- QUEM E QUANDO
+                                     CODIGO_USUARIO          BIGINT,
+                                     DATA_HORA_ALTERACAO     TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 
-    -- Foreign Keys
-                                     CONSTRAINT fk_historico_contrato
-                                         FOREIGN KEY (codigo_contrato)
-                                             REFERENCES contratos(codigo_contrato)
+    -- FOREIGN KEYS
+                                     CONSTRAINT FK_HISTORICO_CONTRATO
+                                         FOREIGN KEY (CODIGO_CONTRATO)
+                                             REFERENCES CONTRATOS(CODIGO_CONTRATO)
                                              ON DELETE CASCADE,
 
-                                     CONSTRAINT fk_historico_usuario
-                                         FOREIGN KEY (codigo_usuario)
-                                             REFERENCES usuarios(codigo_usuario)
+                                     CONSTRAINT FK_HISTORICO_USUARIO
+                                         FOREIGN KEY (CODIGO_USUARIO)
+                                             REFERENCES USUARIOS(CODIGO_USUARIO)
                                              ON DELETE SET NULL,
 
-    -- Constraints
-                                     CONSTRAINT chk_historico_tipo_alteracao CHECK (
-                                         tipo_alteracao IN (
+    -- CONSTRAINTS
+                                     CONSTRAINT CHK_HISTORICO_TIPO_ALTERACAO CHECK (
+                                         TIPO_ALTERACAO IN (
                                                             'CRIACAO', 'EDICAO_VALOR', 'ADICAO_SERVICO', 'REMOCAO_SERVICO',
                                                             'SUSPENSAO', 'REATIVACAO', 'ENCERRAMENTO', 'CANCELAMENTO', 'RENOVACAO'
                                              )
@@ -255,209 +255,209 @@ CREATE TABLE historico_contratos (
 );
 
 -- =====================================================
--- ÍNDICES - Histórico Contratos
+-- ÍNDICES - HISTÓRICO CONTRATOS
 -- =====================================================
-CREATE INDEX idx_historico_contratos_contrato
-    ON historico_contratos(codigo_contrato, data_hora_alteracao DESC);
-CREATE INDEX idx_historico_contratos_usuario ON historico_contratos(codigo_usuario);
-CREATE INDEX idx_historico_contratos_tipo ON historico_contratos(tipo_alteracao);
+CREATE INDEX IDX_HISTORICO_CONTRATOS_CONTRATO
+    ON HISTORICO_CONTRATOS(CODIGO_CONTRATO, DATA_HORA_ALTERACAO DESC);
+CREATE INDEX IDX_HISTORICO_CONTRATOS_USUARIO ON HISTORICO_CONTRATOS(CODIGO_USUARIO);
+CREATE INDEX IDX_HISTORICO_CONTRATOS_TIPO ON HISTORICO_CONTRATOS(TIPO_ALTERACAO);
 
-COMMENT ON TABLE historico_contratos IS
-'Histórico de todas as alterações realizadas em contratos (rastreabilidade completa)';
+COMMENT ON TABLE HISTORICO_CONTRATOS IS
+'HISTÓRICO DE TODAS AS ALTERAÇÕES REALIZADAS EM CONTRATOS (RASTREABILIDADE COMPLETA)';
 
 -- =====================================================
--- TRIGGERS: Atualização automática de timestamps
+-- TRIGGERS: ATUALIZAÇÃO AUTOMÁTICA DE TIMESTAMPS
 -- =====================================================
-CREATE TRIGGER trg_servicos_atualizar_timestamp
-    BEFORE UPDATE ON servicos
+CREATE TRIGGER TRG_SERVICOS_ATUALIZAR_TIMESTAMP
+    BEFORE UPDATE ON SERVICOS
     FOR EACH ROW
-    EXECUTE FUNCTION atualizar_timestamp_atualizacao();
+    EXECUTE FUNCTION ATUALIZAR_TIMESTAMP_ATUALIZACAO();
 
-CREATE TRIGGER trg_contratos_atualizar_timestamp
-    BEFORE UPDATE ON contratos
+CREATE TRIGGER TRG_CONTRATOS_ATUALIZAR_TIMESTAMP
+    BEFORE UPDATE ON CONTRATOS
     FOR EACH ROW
-    EXECUTE FUNCTION atualizar_timestamp_atualizacao();
+    EXECUTE FUNCTION ATUALIZAR_TIMESTAMP_ATUALIZACAO();
 
 -- =====================================================
--- TRIGGER: Gerar número do contrato automaticamente
+-- TRIGGER: GERAR NÚMERO DO CONTRATO AUTOMATICAMENTE
 -- =====================================================
-CREATE OR REPLACE FUNCTION gerar_numero_contrato()
+CREATE OR REPLACE FUNCTION GERAR_NUMERO_CONTRATO()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Se número não foi fornecido, gera automaticamente
-    IF NEW.numero_contrato IS NULL OR NEW.numero_contrato = '' THEN
-        NEW.numero_contrato := gerar_numero_sequencial('CT', 'seq_numero_contrato', 6);
+    -- SE NÚMERO NÃO FOI FORNECIDO, GERA AUTOMATICAMENTE
+    IF NEW.NUMERO_CONTRATO IS NULL OR NEW.NUMERO_CONTRATO = '' THEN
+        NEW.NUMERO_CONTRATO := GERAR_NUMERO_SEQUENCIAL('CT', 'SEQ_NUMERO_CONTRATO', 6);
 END IF;
 
 RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-CREATE TRIGGER trg_contratos_gerar_numero
-    BEFORE INSERT ON contratos
+CREATE TRIGGER TRG_CONTRATOS_GERAR_NUMERO
+    BEFORE INSERT ON CONTRATOS
     FOR EACH ROW
-    EXECUTE FUNCTION gerar_numero_contrato();
+    EXECUTE FUNCTION GERAR_NUMERO_CONTRATO();
 
-COMMENT ON FUNCTION gerar_numero_contrato() IS
-'Gera número do contrato automaticamente no formato CT-2025-000001';
+COMMENT ON FUNCTION GERAR_NUMERO_CONTRATO() IS
+'GERA NÚMERO DO CONTRATO AUTOMATICAMENTE NO FORMATO CT-2025-000001';
 
 -- =====================================================
--- TRIGGER: Recalcular valor total do contrato ao mudar serviços
+-- TRIGGER: RECALCULAR VALOR TOTAL DO CONTRATO AO MUDAR SERVIÇOS
 -- =====================================================
-CREATE OR REPLACE FUNCTION recalcular_valor_total_contrato()
+CREATE OR REPLACE FUNCTION RECALCULAR_VALOR_TOTAL_CONTRATO()
 RETURNS TRIGGER AS $$
 DECLARE
-novo_valor_total NUMERIC(10,2);
+NOVO_VALOR_TOTAL NUMERIC(10,2);
 BEGIN
-    -- Calcula o valor total baseado nos serviços vinculados
-SELECT COALESCE(SUM(valor_servico * quantidade), 0)
-INTO novo_valor_total
-FROM contrato_servicos
-WHERE codigo_contrato = COALESCE(NEW.codigo_contrato, OLD.codigo_contrato);
+    -- CALCULA O VALOR TOTAL BASEADO NOS SERVIÇOS VINCULADOS
+SELECT COALESCE(SUM(VALOR_SERVICO * QUANTIDADE), 0)
+INTO NOVO_VALOR_TOTAL
+FROM CONTRATO_SERVICOS
+WHERE CODIGO_CONTRATO = COALESCE(NEW.CODIGO_CONTRATO, OLD.CODIGO_CONTRATO);
 
--- Atualiza o valor total do contrato
-UPDATE contratos
-SET valor_total = novo_valor_total,
-    atualizado_em = CURRENT_TIMESTAMP
-WHERE codigo_contrato = COALESCE(NEW.codigo_contrato, OLD.codigo_contrato);
+-- ATUALIZA O VALOR TOTAL DO CONTRATO
+UPDATE CONTRATOS
+SET VALOR_TOTAL = NOVO_VALOR_TOTAL,
+    ATUALIZADO_EM = CURRENT_TIMESTAMP
+WHERE CODIGO_CONTRATO = COALESCE(NEW.CODIGO_CONTRATO, OLD.CODIGO_CONTRATO);
 
 RETURN COALESCE(NEW, OLD);
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-CREATE TRIGGER trg_contrato_servicos_recalcular_valor_insert
-    AFTER INSERT ON contrato_servicos
+CREATE TRIGGER TRG_CONTRATO_SERVICOS_RECALCULAR_VALOR_INSERT
+    AFTER INSERT ON CONTRATO_SERVICOS
     FOR EACH ROW
-    EXECUTE FUNCTION recalcular_valor_total_contrato();
+    EXECUTE FUNCTION RECALCULAR_VALOR_TOTAL_CONTRATO();
 
-CREATE TRIGGER trg_contrato_servicos_recalcular_valor_update
-    AFTER UPDATE ON contrato_servicos
+CREATE TRIGGER TRG_CONTRATO_SERVICOS_RECALCULAR_VALOR_UPDATE
+    AFTER UPDATE ON CONTRATO_SERVICOS
     FOR EACH ROW
-    EXECUTE FUNCTION recalcular_valor_total_contrato();
+    EXECUTE FUNCTION RECALCULAR_VALOR_TOTAL_CONTRATO();
 
-CREATE TRIGGER trg_contrato_servicos_recalcular_valor_delete
-    AFTER DELETE ON contrato_servicos
+CREATE TRIGGER TRG_CONTRATO_SERVICOS_RECALCULAR_VALOR_DELETE
+    AFTER DELETE ON CONTRATO_SERVICOS
     FOR EACH ROW
-    EXECUTE FUNCTION recalcular_valor_total_contrato();
+    EXECUTE FUNCTION RECALCULAR_VALOR_TOTAL_CONTRATO();
 
-COMMENT ON FUNCTION recalcular_valor_total_contrato() IS
-'Recalcula automaticamente o valor_total do contrato quando serviços são adicionados/removidos/alterados';
+COMMENT ON FUNCTION RECALCULAR_VALOR_TOTAL_CONTRATO() IS
+'RECALCULA AUTOMATICAMENTE O VALOR_TOTAL DO CONTRATO QUANDO SERVIÇOS SÃO ADICIONADOS/REMOVIDOS/ALTERADOS';
 
 -- =====================================================
--- TRIGGER: Registrar mudanças no histórico de contratos
+-- TRIGGER: REGISTRAR MUDANÇAS NO HISTÓRICO DE CONTRATOS
 -- =====================================================
-CREATE OR REPLACE FUNCTION registrar_historico_contrato()
+CREATE OR REPLACE FUNCTION REGISTRAR_HISTORICO_CONTRATO()
 RETURNS TRIGGER AS $$
 DECLARE
-tipo_mudanca VARCHAR(50);
-    descricao TEXT;
-    codigo_usuario_atual BIGINT;
+TIPO_MUDANCA VARCHAR(50);
+    DESCRICAO TEXT;
+    CODIGO_USUARIO_ATUAL BIGINT;
 BEGIN
-    -- Tenta pegar o código do usuário da sessão
+    -- TENTA PEGAR O CÓDIGO DO USUÁRIO DA SESSÃO
 BEGIN
-        codigo_usuario_atual := CURRENT_SETTING('app.codigo_usuario', TRUE)::BIGINT;
+        CODIGO_USUARIO_ATUAL := CURRENT_SETTING('APP.CODIGO_USUARIO', TRUE)::BIGINT;
 EXCEPTION WHEN OTHERS THEN
-        codigo_usuario_atual := NULL;
+        CODIGO_USUARIO_ATUAL := NULL;
 END;
 
-    -- INSERT = Criação
+    -- INSERT = CRIAÇÃO
     IF (TG_OP = 'INSERT') THEN
-        tipo_mudanca := 'CRIACAO';
-        descricao := 'Contrato criado com valor total de R$ ' || NEW.valor_total;
+        TIPO_MUDANCA := 'CRIACAO';
+        DESCRICAO := 'CONTRATO CRIADO COM VALOR TOTAL DE R$ ' || NEW.VALOR_TOTAL;
 
-    -- UPDATE = Detectar tipo de mudança
+    -- UPDATE = DETECTAR TIPO DE MUDANÇA
     ELSIF (TG_OP = 'UPDATE') THEN
-        -- Mudança de status
-        IF OLD.status_contrato != NEW.status_contrato THEN
-            CASE NEW.status_contrato
+        -- MUDANÇA DE STATUS
+        IF OLD.STATUS_CONTRATO != NEW.STATUS_CONTRATO THEN
+            CASE NEW.STATUS_CONTRATO
                 WHEN 'SUSPENSO' THEN
-                    tipo_mudanca := 'SUSPENSAO';
-                    descricao := 'Contrato suspenso';
+                    TIPO_MUDANCA := 'SUSPENSAO';
+                    DESCRICAO := 'CONTRATO SUSPENSO';
 WHEN 'ATIVO' THEN
-                    tipo_mudanca := 'REATIVACAO';
-                    descricao := 'Contrato reativado';
+                    TIPO_MUDANCA := 'REATIVACAO';
+                    DESCRICAO := 'CONTRATO REATIVADO';
 WHEN 'ENCERRADO' THEN
-                    tipo_mudanca := 'ENCERRAMENTO';
-                    descricao := 'Contrato encerrado';
+                    TIPO_MUDANCA := 'ENCERRAMENTO';
+                    DESCRICAO := 'CONTRATO ENCERRADO';
 WHEN 'CANCELADO' THEN
-                    tipo_mudanca := 'CANCELAMENTO';
-                    descricao := 'Contrato cancelado';
+                    TIPO_MUDANCA := 'CANCELAMENTO';
+                    DESCRICAO := 'CONTRATO CANCELADO';
 END CASE;
 
-        -- Mudança de valor
-        ELSIF OLD.valor_total != NEW.valor_total THEN
-            tipo_mudanca := 'EDICAO_VALOR';
-            descricao := 'Valor alterado de R$ ' || OLD.valor_total || ' para R$ ' || NEW.valor_total;
+        -- MUDANÇA DE VALOR
+        ELSIF OLD.VALOR_TOTAL != NEW.VALOR_TOTAL THEN
+            TIPO_MUDANCA := 'EDICAO_VALOR';
+            DESCRICAO := 'VALOR ALTERADO DE R$ ' || OLD.VALOR_TOTAL || ' PARA R$ ' || NEW.VALOR_TOTAL;
 
-        -- Outras mudanças
+        -- OUTRAS MUDANÇAS
 ELSE
-            RETURN NEW;  -- Não registra mudanças não críticas
+            RETURN NEW;  -- NÃO REGISTRA MUDANÇAS NÃO CRÍTICAS
 END IF;
 
 ELSE
         RETURN NEW;
 END IF;
 
-    -- Insere no histórico
-INSERT INTO historico_contratos (
-    codigo_contrato,
-    tipo_alteracao,
-    descricao_alteracao,
-    codigo_usuario
+    -- INSERE NO HISTÓRICO
+INSERT INTO HISTORICO_CONTRATOS (
+    CODIGO_CONTRATO,
+    TIPO_ALTERACAO,
+    DESCRICAO_ALTERACAO,
+    CODIGO_USUARIO
 ) VALUES (
-             NEW.codigo_contrato,
-             tipo_mudanca,
-             descricao,
-             codigo_usuario_atual
+             NEW.CODIGO_CONTRATO,
+             TIPO_MUDANCA,
+             DESCRICAO,
+             CODIGO_USUARIO_ATUAL
          );
 
 RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE PLPGSQL;
 
-CREATE TRIGGER trg_contratos_historico
-    AFTER INSERT OR UPDATE ON contratos
+CREATE TRIGGER TRG_CONTRATOS_HISTORICO
+    AFTER INSERT OR UPDATE ON CONTRATOS
                         FOR EACH ROW
-                        EXECUTE FUNCTION registrar_historico_contrato();
+                        EXECUTE FUNCTION REGISTRAR_HISTORICO_CONTRATO();
 
-COMMENT ON FUNCTION registrar_historico_contrato() IS
-'Registra automaticamente alterações críticas no histórico de contratos';
+COMMENT ON FUNCTION REGISTRAR_HISTORICO_CONTRATO() IS
+'REGISTRA AUTOMATICAMENTE ALTERAÇÕES CRÍTICAS NO HISTÓRICO DE CONTRATOS';
 
 -- =====================================================
--- TRIGGER: Encerrar automaticamente contratos vencidos
+-- TRIGGER: ENCERRAR AUTOMATICAMENTE CONTRATOS VENCIDOS
 -- =====================================================
--- Nota: Este trigger seria executado por um JOB diário, não em cada operação
--- Por questão de performance, isso será implementado no backend
+-- NOTA: ESTE TRIGGER SERIA EXECUTADO POR UM JOB DIÁRIO, NÃO EM CADA OPERAÇÃO
+-- POR QUESTÃO DE PERFORMANCE, ISSO SERÁ IMPLEMENTADO NO BACKEND
 
 -- =====================================================
 -- VIEWS ÚTEIS
 -- =====================================================
 
--- View: Contratos Ativos com Cliente e Valor
-CREATE OR REPLACE VIEW vw_contratos_ativos AS
+-- VIEW: CONTRATOS ATIVOS COM CLIENTE E VALOR
+CREATE OR REPLACE VIEW VW_CONTRATOS_ATIVOS AS
 SELECT
-    ct.codigo_contrato,
-    ct.numero_contrato,
-    cl.codigo_cliente,
-    cl.razao_social,
-    cl.nome_fantasia,
-    ct.tipo_contrato,
-    ct.valor_total,
-    ct.data_inicio,
-    ct.data_fim,
-    ct.status_contrato,
-    -- Dias até vencimento
-    (ct.data_fim - CURRENT_DATE) AS dias_ate_vencimento,
-    -- Total de serviços
-    (SELECT COUNT(*) FROM contrato_servicos cs WHERE cs.codigo_contrato = ct.codigo_contrato) AS total_servicos
-FROM contratos ct
-         INNER JOIN clientes cl ON ct.codigo_cliente = cl.codigo_cliente
-WHERE ct.status_contrato = 'ATIVO'
-  AND cl.excluido_em IS NULL
-ORDER BY ct.data_fim ASC;
+    CT.CODIGO_CONTRATO,
+    CT.NUMERO_CONTRATO,
+    CL.CODIGO_CLIENTE,
+    CL.RAZAO_SOCIAL,
+    CL.NOME_FANTASIA,
+    CT.TIPO_CONTRATO,
+    CT.VALOR_TOTAL,
+    CT.DATA_INICIO,
+    CT.DATA_FIM,
+    CT.STATUS_CONTRATO,
+    -- DIAS ATÉ VENCIMENTO
+    (CT.DATA_FIM - CURRENT_DATE) AS DIAS_ATE_VENCIMENTO,
+    -- TOTAL DE SERVIÇOS
+    (SELECT COUNT(*) FROM CONTRATO_SERVICOS CS WHERE CS.CODIGO_CONTRATO = CT.CODIGO_CONTRATO) AS TOTAL_SERVICOS
+FROM CONTRATOS CT
+         INNER JOIN CLIENTES CL ON CT.CODIGO_CLIENTE = CL.CODIGO_CLIENTE
+WHERE CT.STATUS_CONTRATO = 'ATIVO'
+  AND CL.EXCLUIDO_EM IS NULL
+ORDER BY CT.DATA_FIM ASC;
 
-COMMENT ON VIEW vw_contratos_ativos IS
-'Visão de contratos ativos com informações do cliente e dias até vencimento';
+COMMENT ON VIEW VW_CONTRATOS_ATIVOS IS
+'VISÃO DE CONTRATOS ATIVOS COM INFORMAÇÕES DO CLIENTE E DIAS ATÉ VENCIMENTO';
 
 -- =====================================================
 -- FIM DA MIGRATION V004

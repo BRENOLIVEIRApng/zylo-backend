@@ -1,24 +1,24 @@
 -- ÍNDICES ADICIONAIS PARA PERFORMANCE
 
--- Índices compostos para queries comuns
-CREATE INDEX idx_clientes_status_cidade ON clientes(status_cliente, cidade) WHERE excluido_em IS NULL;
-CREATE INDEX idx_contratos_cliente_status_tipo ON contratos(codigo_cliente, status_contrato, tipo_contrato);
-CREATE INDEX idx_os_status_responsavel_prioridade ON ordens_servico(status_os, codigo_responsavel, prioridade);
-CREATE INDEX idx_faturas_cliente_status_vencimento ON faturas(codigo_cliente, status_fatura, data_vencimento);
+-- ÍNDICES COMPOSTOS PARA QUERIES COMUNS
+CREATE INDEX IDX_CLIENTES_STATUS_CIDADE ON CLIENTES(STATUS_CLIENTE, CIDADE) WHERE EXCLUIDO_EM IS NULL;
+CREATE INDEX IDX_CONTRATOS_CLIENTE_STATUS_TIPO ON CONTRATOS(CODIGO_CLIENTE, STATUS_CONTRATO, TIPO_CONTRATO);
+CREATE INDEX IDX_OS_STATUS_RESPONSAVEL_PRIORIDADE ON ORDENS_SERVICO(STATUS_OS, CODIGO_RESPONSAVEL, PRIORIDADE);
+CREATE INDEX IDX_FATURAS_CLIENTE_STATUS_VENCIMENTO ON FATURAS(CODIGO_CLIENTE, STATUS_FATURA, DATA_VENCIMENTO);
 
--- Índices para relatórios
-CREATE INDEX idx_os_data_criacao_mes ON ordens_servico(criado_em);
-CREATE INDEX idx_faturas_emissao_mes ON faturas(data_emissao);
+-- ÍNDICES PARA RELATÓRIOS
+CREATE INDEX IDX_OS_DATA_CRIACAO_MES ON ORDENS_SERVICO(CRIADO_EM);
+CREATE INDEX IDX_FATURAS_EMISSAO_MES ON FATURAS(DATA_EMISSAO);
 
--- Índices de texto para busca
-CREATE INDEX idx_clientes_busca ON clientes USING gin(to_tsvector('portuguese', razao_social || ' ' || COALESCE(nome_fantasia, '')));
-CREATE INDEX idx_os_busca ON ordens_servico USING gin(to_tsvector('portuguese', titulo_os || ' ' || COALESCE(descricao_os, '')));
+-- ÍNDICES DE TEXTO PARA BUSCA
+CREATE INDEX IDX_CLIENTES_BUSCA ON CLIENTES USING GIN(TO_TSVECTOR('PORTUGUESE', RAZAO_SOCIAL || ' ' || COALESCE(NOME_FANTASIA, '')));
+CREATE INDEX IDX_OS_BUSCA ON ORDENS_SERVICO USING GIN(TO_TSVECTOR('PORTUGUESE', TITULO_OS || ' ' || COALESCE(DESCRICAO_OS, '')));
 
--- Estatísticas
-ANALYZE usuarios;
-ANALYZE perfis;
-ANALYZE clientes;
-ANALYZE contratos;
-ANALYZE servicos;
-ANALYZE ordens_servico;
-ANALYZE faturas;
+-- ESTATÍSTICAS
+ANALYZE USUARIOS;
+ANALYZE PERFIS;
+ANALYZE CLIENTES;
+ANALYZE CONTRATOS;
+ANALYZE SERVICOS;
+ANALYZE ORDENS_SERVICO;
+ANALYZE FATURAS;

@@ -15,33 +15,33 @@ public class ContatoCliente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo_contato")
+    @Column(name = "CODIGO_CONTATO")
     private Long codigoContato;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "codigo_cliente", nullable = false)
+    @JoinColumn(name = "CODIGO_CLIENTE", nullable = false)
     private Cliente cliente;
 
-    @Column(name = "nome_contato", nullable = false, length = 100)
+    @Column(name = "NOME_CONTATO", nullable = false, length = 100)
     private String nome;
 
-    @Column(name = "email_contato", length = 100)
+    @Column(name = "EMAIL_CONTATO", length = 100)
     private String emailContato;
 
-    @Column(name = "telefone", length = 20)
+    @Column(name = "TELEFONE", length = 20)
     private String telefone;
 
-    @Column(name = "celular", length = 20)
+    @Column(name = "CELULAR", length = 20)
     private String celular;
 
-    @Column(name = "cargo", length = 100)
+    @Column(name = "CARGO", length = 100)
     private String cargo;
 
-    @Column(name = "principal")
+    @Column(name = "PRINCIPAL")
     @Builder.Default
     private boolean principal = false;
 
-    @Column(name = "ativo", nullable = false)
+    @Column(name = "ATIVO", nullable = false)
     @Builder.Default
     private boolean ativo = true;
 

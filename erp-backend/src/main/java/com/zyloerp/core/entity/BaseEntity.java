@@ -20,25 +20,25 @@ import java.time.LocalDateTime;
 public  abstract class BaseEntity {
 
     @CreatedDate
-    @Column(name = "criado_em", nullable = false, updatable = false)
+    @Column(name = "CRIADO_EM", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 
     @CreatedBy
-    @Column(name = "criado_por", nullable = false, updatable = false)
+    @Column(name = "CRIADO_POR", nullable = false, updatable = false)
     private Long criadoPor;
 
     @LastModifiedDate
-    @Column(name = "atualizado_em", nullable = false)
+    @Column(name = "ATUALIZADO_EM", nullable = false)
     private LocalDateTime atualizadoEm;
 
     @LastModifiedBy
-    @Column(name = "atualizado_por", nullable = false)
+    @Column(name = "ATUALIZADO_POR", nullable = false)
     private Long atualizadoPor;
 
-    @Column(name = "excluido_em")
+    @Column(name = "EXCLUIDO_EM")
     private LocalDateTime excluidoEm;
 
-    @Column(name = "excluido_por")
+    @Column(name = "EXCLUIDO_POR")
     private Long excluidoPor;
 
     public boolean isExcluidoEm() {

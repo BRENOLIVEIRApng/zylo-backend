@@ -19,27 +19,27 @@ public class Perfil {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo_perfil")
+    @Column(name = "CODIGO_PERFIL")
     private Long codigoPerfil;
 
-    @Column(name = "nome_perfil",nullable = false, unique = true, length = 50)
+    @Column(name = "NOME_PERFIL",nullable = false, unique = true, length = 50)
     private String nomePerfil;
 
-    @Column(name = "descricao_perfil", columnDefinition = "TEXT")
+    @Column(name = "DESCRICAO_PERFIL", columnDefinition = "TEXT")
     private String descricaoPerfil;
 
-    @Column(name = "sistema", nullable = false)
+    @Column(name = "SISTEMA", nullable = false)
     @Builder.Default
     private Boolean sistema = false;
 
-    @Column(name = "criado_em", nullable = false, updatable = false)
+    @Column(name = "CRIADO_EM", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "perfil_permissoes",
-            joinColumns = @JoinColumn(name = "codigo_perfil"),
-            inverseJoinColumns = @JoinColumn(name = "codigo_permissao")
+            name = "PERFIL_PERMISSOES",
+            joinColumns = @JoinColumn(name = "CODIGO_PERFIL"),
+            inverseJoinColumns = @JoinColumn(name = "CODIGO_PERMISSAO")
     )
 
     @Builder.Default

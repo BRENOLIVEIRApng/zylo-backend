@@ -20,26 +20,26 @@ public class HistoricoAcesso {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigo_acesso")
+    @Column(name = "CODIGO_ACESSO")
     private long codigoAcesso;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "codigo_usuario", nullable = false)
+    @JoinColumn(name = "CODIGO_USUARIO", nullable = false)
     private Usuario usuario;
 
-    @Column(name = "ip_acesso", length = 45)
+    @Column(name = "IP_ACESSO", length = 45)
     private String ipAcesso;
 
-    @Column(name = "user_agent", columnDefinition = "TEXT")
+    @Column(name = "USER_AGENT", columnDefinition = "TEXT")
     private String userAgent;
 
-    @Column(name = "data_hora_acesso", nullable = false)
+    @Column(name = "DATA_HORA_ACESSO", nullable = false)
     private LocalDateTime dataHoraAcesso;
 
-    @Column(name = "sucesso", nullable = false)
+    @Column(name = "SUCESSO", nullable = false)
     private boolean sucesso = true;
 
-    @Column(name = "motivo_falha")
+    @Column(name = "MOTIVO_FALHA")
     private String motivoFalha;
 
     public static HistoricoAcesso loginSucesso(Usuario usuario, String ip, String userAgent){
