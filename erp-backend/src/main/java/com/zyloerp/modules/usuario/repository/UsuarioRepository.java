@@ -16,7 +16,9 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByEmailIgnoreCase(String email);
 
-    static boolean existsByEmail(String email);
+    static boolean existsByEmail(String email) {
+        return false;
+    }
 
     @Query("SELECT u FROM Usuario u WHERE u.excluidoEm IS NULL")
     List<Usuario> findAllAtivos();

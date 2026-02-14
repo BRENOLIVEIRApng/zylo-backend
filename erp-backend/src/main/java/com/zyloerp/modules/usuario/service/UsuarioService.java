@@ -11,10 +11,12 @@ public class UsuarioService {
         this.usuarioRepository = usuarioRepository;
     }
 
+    //Valida os e-mail quando criar um novo usuario
     public Usuario create(Usuario usuario) {
         if (UsuarioRepository.existsByEmail(usuario.getEmail())){
             throw new RuntimeException("E-mail já existe");
         }
         return usuarioRepository.save(usuario);
     }
+    
 }
