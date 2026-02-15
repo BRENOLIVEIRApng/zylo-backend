@@ -6,14 +6,17 @@ import com.zyloerp.modules.auth.dto.LoginResponse;
 import com.zyloerp.modules.usuario.model.HistoricoAcesso;
 import com.zyloerp.modules.usuario.model.Usuario;
 import com.zyloerp.modules.usuario.repository.HistoricoAcessoRepository;
-import com.zyloerp.modules.usuario.dto.UsuarioRequestDTO;
+import com.zyloerp.modules.usuario.dto.UsuarioResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -24,43 +27,56 @@ public class AuthService {
     private final HistoricoAcessoRepository historicoAcessoRepository;
 
     @Transactional
-    public LoginResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getSenha()
-                )
-        );
+    public LoginResponse login(LoginRequest request, String ip, String userAgent) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getSenha()
+                    )
+            );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        Usuario usuario = (Usuario) authentication.getPrincipal();
+            Usuario usuario = (Usuario) authentication.getPrincipal();
 
-        String token = jwtTokenProvider.generateToken(authentication);
+            String token = jwtTokenProvider.generateToken(authentication);
 
-        registrarAcesso(usuario, true, null);
+            // Registrar acesso com sucesso
+            registrarAcesso(usuario, ip, userAgent, true, null);
 
-        return LoginResponse.builder()
-                .token(token)
-                .tipo("Bearer")
-                .expiresIn(28800000L)
-                .usuario(UsuarioRequestDTO.builder()
-                        .codigoUsuario(usuario.getCodigoUsuario())
-                        .nomeCompleto(usuario.getNomeCompleto())
-                        .email(usuario.getEmail())
-                        .perfil(usuario.getNomePerfil())
-                        .ativo(usuario.getAtivo())
-                        .build())
-                .build();
+            // Atualizar último acesso
+            usuario.setUltimoAcesso(LocalDateTime.now());
+
+            return LoginResponse.builder()
+                    .token(token)
+                    .tipo("Bearer")
+                    .expiresIn(28800000L) // 8 horas em ms
+                    .usuario(UsuarioResponseDTO.fromEntity(usuario))
+                    .build();
+
+        } catch (BadCredentialsException e) {
+            // Registrar falha
+            registrarAcessoFalho(request.getEmail(), ip, userAgent, "Senha incorreta");
+            throw new BadCredentialsException("Email ou senha incorretos");
+        }
     }
 
-    private void registrarAcesso(Usuario usuario, boolean sucesso, String motivo) {
+    private void registrarAcesso(Usuario usuario, String ip, String userAgent, boolean sucesso, String motivo) {
         HistoricoAcesso acesso = HistoricoAcesso.builder()
                 .usuario(usuario)
+                .ipAcesso(ip)
+                .userAgent(userAgent)
+                .dataHoraAcesso(LocalDateTime.now())
                 .sucesso(sucesso)
                 .motivoFalha(motivo)
                 .build();
 
         historicoAcessoRepository.save(acesso);
+    }
+
+    private void registrarAcessoFalho(String email, String ip, String userAgent, String motivo) {
+        // Não registra se usuário não existir
+        // Evita expor se email existe ou não
     }
 }

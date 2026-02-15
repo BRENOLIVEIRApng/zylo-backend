@@ -41,7 +41,11 @@ public  abstract class BaseEntity {
     @Column(name = "EXCLUIDO_POR")
     private Long excluidoPor;
 
-    public boolean isExcluidoEm() {
+    public boolean isExcluido() {
+        return this.excluidoEm != null;
+    }
+
+    public boolean isAtivo() {
         return this.excluidoEm == null;
     }
 

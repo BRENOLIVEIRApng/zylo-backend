@@ -1,26 +1,17 @@
 package com.zyloerp.modules.usuario.model;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.zyloerp.core.entity.BaseEntity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,18 +41,25 @@ public class Usuario extends BaseEntity implements UserDetails {
     @Column(name = "SENHA_HASH", nullable = false, length = 255)
     private String senhaHash;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "CODIGO_PERFIL", nullable = false)
+    private Perfil perfil;
+
     @Column(name = "ATIVO", nullable = false)
     @Builder.Default
     private Boolean ativo = true;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "CODIGO_PERFIL", nullable = false)
-    private Perfil perfil;
+    @Column(name = "ULTIMO_ACESSO")
+    private LocalDateTime ultimoAcesso;
+
+    @Column(name = "CRIADO_EM")
+    private LocalDateTime criadoEm;
 
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Builder.Default
     private List<HistoricoAcesso> historicoAcessos = new ArrayList<>();
 
+    // USERDETAILS METHODS
     @Override
     public String getUsername() {
         return this.email;
@@ -78,8 +76,7 @@ public class Usuario extends BaseEntity implements UserDetails {
 
         if (this.perfil != null && this.perfil.getPermissoes() != null) {
             for (Permissao permissao : this.perfil.getPermissoes()) {
-                String authority = permissao.getModulo() + ":" + permissao.getAcao();
-                authorities.add(new SimpleGrantedAuthority(authority));
+                authorities.add(new SimpleGrantedAuthority(permissao.getAuthority()));
             }
         }
 
@@ -93,7 +90,7 @@ public class Usuario extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return this.isExcluidoEm();
+        return getExcluidoEm() == null;
     }
 
     @Override
@@ -103,31 +100,41 @@ public class Usuario extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.ativo && this.isExcluidoEm();
+        return this.ativo && getExcluidoEm() == null;
     }
 
-    public boolean temPermissao(String modulo, String acao) {
-        if (this.perfil == null || this.perfil.getPermissoes() == null) {
-            return false;
-        }
-
-        return this.perfil.getPermissoes().stream()
-                .anyMatch(p -> p.getModulo().equals(modulo) && p.getAcao().equals(acao));
-    }
-
-    public boolean isAdmin() {
-        return this.perfil != null && "Admin".equalsIgnoreCase(this.perfil.getNomePerfil());
-    }
-
-    public String getNomePerfil() {
-        return this.perfil != null ? this.perfil.getNomePerfil() : "Sem perfil";
-    }
-
+    // BUSINESS METHODS
     public void ativar() {
         this.ativo = true;
     }
 
     public void desativar() {
         this.ativo = false;
+    }
+
+    public boolean temPermissao(String modulo, String acao) {
+        if (this.perfil == null || this.perfil.getPermissoes() == null) {
+            return false;
+        }
+        return this.perfil.getPermissoes().stream()
+                .anyMatch(p -> p.getModulo().equals(modulo) && p.getAcao().equals(acao));
+    }
+
+    public boolean isAdmin() {
+        return this.perfil != null && "ADMIN".equalsIgnoreCase(this.perfil.getNomePerfil());
+    }
+
+    public String getNomePerfil() {
+        return this.perfil != null ? this.perfil.getNomePerfil() : "Sem perfil";
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        if (getCriadoEm() == null) {
+            setCriadoEm(LocalDateTime.now());
+        }
+        if (this.ativo == null) {
+            this.ativo = true;
+        }
     }
 }
