@@ -8,10 +8,10 @@ import java.util.Set;
 
 @Entity
 @Table(
-        name = "PERMISSOES",
+        name = "permissoes",
         uniqueConstraints = @UniqueConstraint(
-            name = "UK_PERMISSOES_MODULO_ACAO",
-            columnNames = {"MODULO", "ACAO"}
+                name = "uk_permissoes_modulo_acao",
+                columnNames = {"modulo", "acao"}
         )
 )
 @Getter
@@ -23,20 +23,22 @@ public class Permissao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CODIGO_PERMISSAO")
+    @Column(name = "codigo_permissao")
     private Long codigoPermissao;
 
-    @Column(name = "MODULO", nullable = false, length = 50)
+    @Column(name = "modulo", nullable = false, length = 50)
     private String modulo;
 
-    @Column(name = "ACAO", nullable = false, length = 20)
+    @Column(name = "acao", nullable = false, length = 20)
     private String acao;
 
-    @Column(name = "DESCRICAO_PERMISSAO", columnDefinition = "TEXT")
+    @Column(name = "descricao_permissao", columnDefinition = "TEXT")
     private String descricaoPermissao;
 
+    // Inicializado para evitar NPE ao sincronizar bidirecional
     @ManyToMany(mappedBy = "permissoes")
-    private Set<Perfil> perfils;
+    @Builder.Default
+    private Set<Perfil> perfils = new HashSet<>();
 
     public String getAuthority() {
         return this.modulo + ":" + this.acao;

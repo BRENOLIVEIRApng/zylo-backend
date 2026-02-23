@@ -6,6 +6,7 @@ import com.zyloerp.modules.auth.dto.LoginResponse;
 import com.zyloerp.modules.usuario.model.HistoricoAcesso;
 import com.zyloerp.modules.usuario.model.Usuario;
 import com.zyloerp.modules.usuario.repository.HistoricoAcessoRepository;
+import com.zyloerp.modules.usuario.repository.UsuarioRepository;
 import com.zyloerp.modules.usuario.dto.UsuarioResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +26,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final HistoricoAcessoRepository historicoAcessoRepository;
+    private final UsuarioRepository usuarioRepository; // necessário para persistir ultimoAcesso
 
     @Transactional
     public LoginResponse login(LoginRequest request, String ip, String userAgent) {
@@ -42,41 +44,33 @@ public class AuthService {
 
             String token = jwtTokenProvider.generateToken(authentication);
 
-            // Registrar acesso com sucesso
-            registrarAcesso(usuario, ip, userAgent, true, null);
+            registrarAcessoSucesso(usuario, ip, userAgent);
 
-            // Atualizar último acesso
+            // Persiste o último acesso (sem save() anterior, isso nunca era salvo)
             usuario.setUltimoAcesso(LocalDateTime.now());
+            usuarioRepository.save(usuario);
 
             return LoginResponse.builder()
                     .token(token)
                     .tipo("Bearer")
-                    .expiresIn(28800000L) // 8 horas em ms
+                    .expiresIn(28800000L) // 8h em ms
                     .usuario(UsuarioResponseDTO.fromEntity(usuario))
                     .build();
 
         } catch (BadCredentialsException e) {
-            // Registrar falha
-            registrarAcessoFalho(request.getEmail(), ip, userAgent, "Senha incorreta");
+            // Não expõe se o email existe ou não — boa prática de segurança
             throw new BadCredentialsException("Email ou senha incorretos");
         }
     }
 
-    private void registrarAcesso(Usuario usuario, String ip, String userAgent, boolean sucesso, String motivo) {
+    private void registrarAcessoSucesso(Usuario usuario, String ip, String userAgent) {
         HistoricoAcesso acesso = HistoricoAcesso.builder()
                 .usuario(usuario)
                 .ipAcesso(ip)
                 .userAgent(userAgent)
                 .dataHoraAcesso(LocalDateTime.now())
-                .sucesso(sucesso)
-                .motivoFalha(motivo)
+                .sucesso(true)
                 .build();
-
         historicoAcessoRepository.save(acesso);
-    }
-
-    private void registrarAcessoFalho(String email, String ip, String userAgent, String motivo) {
-        // Não registra se usuário não existir
-        // Evita expor se email existe ou não
     }
 }

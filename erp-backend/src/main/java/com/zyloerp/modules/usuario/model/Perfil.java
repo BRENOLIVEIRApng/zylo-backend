@@ -2,7 +2,6 @@ package com.zyloerp.modules.usuario.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.Builder;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -19,43 +18,51 @@ public class Perfil {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CODIGO_PERFIL")
+    @Column(name = "codigo_perfil")
     private Long codigoPerfil;
 
-    @Column(name = "NOME_PERFIL",nullable = false, unique = true, length = 50)
+    @Column(name = "nome_perfil", nullable = false, unique = true, length = 50)
     private String nomePerfil;
 
-    @Column(name = "DESCRICAO_PERFIL", columnDefinition = "TEXT")
+    @Column(name = "descricao_perfil", columnDefinition = "TEXT")
     private String descricaoPerfil;
 
-    @Column(name = "SISTEMA", nullable = false)
+    @Column(name = "sistema", nullable = false)
     @Builder.Default
     private Boolean sistema = false;
 
-    @Column(name = "CRIADO_EM", nullable = false, updatable = false)
+    @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    // FetchType.LAZY evita o problema de alias com EAGER + subselect no Hibernate 6
+    // referencedColumnName garante que o Hibernate não infere o nome errado
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "PERFIL_PERMISSOES",
-            joinColumns = @JoinColumn(name = "CODIGO_PERFIL"),
-            inverseJoinColumns = @JoinColumn(name = "CODIGO_PERMISSAO")
+            name = "perfil_permissoes",
+            joinColumns = @JoinColumn(
+                    name = "codigo_perfil",
+                    referencedColumnName = "codigo_perfil"
+            ),
+            inverseJoinColumns = @JoinColumn(
+                    name = "codigo_permissao",
+                    referencedColumnName = "codigo_permissao"
+            )
     )
-
     @Builder.Default
     private Set<Permissao> permissoes = new HashSet<>();
 
     public void adicionarPermissao(Permissao permissao) {
         this.permissoes.add(permissao);
+        permissao.getPerfils().add(this); // bidirecional sincronizado
     }
 
     public void removerPermissao(Permissao permissao) {
         this.permissoes.remove(permissao);
+        permissao.getPerfils().remove(this);
     }
 
     @PrePersist
     protected void onCreate() {
         this.criadoEm = LocalDateTime.now();
     }
-
 }

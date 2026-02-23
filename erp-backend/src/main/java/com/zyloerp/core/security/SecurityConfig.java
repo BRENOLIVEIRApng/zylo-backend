@@ -29,9 +29,9 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authenticationConfiguration
+            AuthenticationConfiguration config
     ) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+        return config.getAuthenticationManager();
     }
 
     @Bean
@@ -41,8 +41,9 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",
+                                "/api/auth/**",       // login / logout
                                 "/swagger-ui/**",
+                                "/v3/api-docs/**",
                                 "/api-docs/**",
                                 "/",
                                 "/index.html",
@@ -52,6 +53,8 @@ public class SecurityConfig {
                                 "/images/**",
                                 "/error"
                         ).permitAll()
+                        // TODOS os outros endpoints exigem autenticação
+                        // Autorização granular é feita via @PreAuthorize nos controllers
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

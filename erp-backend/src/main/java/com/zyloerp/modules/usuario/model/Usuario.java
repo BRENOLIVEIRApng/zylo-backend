@@ -29,37 +29,39 @@ public class Usuario extends BaseEntity implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "CODIGO_USUARIO")
+    @Column(name = "codigo_usuario")
     private Long codigoUsuario;
 
-    @Column(name = "NOME_COMPLETO", nullable = false, length = 100)
+    @Column(name = "nome_completo", nullable = false, length = 100)
     private String nomeCompleto;
 
-    @Column(name = "EMAIL", nullable = false, unique = true, length = 100)
+    @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(name = "SENHA_HASH", nullable = false, length = 255)
+    @Column(name = "senha_hash", nullable = false, length = 255)
     private String senhaHash;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "CODIGO_PERFIL", nullable = false)
+    // LAZY — permissões são carregadas via JOIN FETCH na query do UserDetailsService
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "codigo_perfil", nullable = false)
     private Perfil perfil;
 
-    @Column(name = "ATIVO", nullable = false)
+    @Column(name = "ativo", nullable = false)
     @Builder.Default
     private Boolean ativo = true;
 
-    @Column(name = "ULTIMO_ACESSO")
-    private LocalDateTime ultimoAcesso;
-
-    @Column(name = "CRIADO_EM")
+    @Column(name = "criado_em", updatable = false)
     private LocalDateTime criadoEm;
+
+    @Column(name = "ultimo_acesso")
+    private LocalDateTime ultimoAcesso;
 
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Builder.Default
     private List<HistoricoAcesso> historicoAcessos = new ArrayList<>();
 
-    // USERDETAILS METHODS
+    // ─── UserDetails ─────────────────────────────────────────────────────────────
+
     @Override
     public String getUsername() {
         return this.email;
@@ -73,13 +75,11 @@ public class Usuario extends BaseEntity implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
-
         if (this.perfil != null && this.perfil.getPermissoes() != null) {
             for (Permissao permissao : this.perfil.getPermissoes()) {
                 authorities.add(new SimpleGrantedAuthority(permissao.getAuthority()));
             }
         }
-
         return authorities;
     }
 
@@ -100,10 +100,12 @@ public class Usuario extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.ativo && getExcluidoEm() == null;
+        // Boolean.TRUE.equals evita NPE em campos Boolean (objeto, não primitivo)
+        return Boolean.TRUE.equals(this.ativo) && getExcluidoEm() == null;
     }
 
-    // BUSINESS METHODS
+    // ─── Business ────────────────────────────────────────────────────────────────
+
     public void ativar() {
         this.ativo = true;
     }
@@ -113,9 +115,7 @@ public class Usuario extends BaseEntity implements UserDetails {
     }
 
     public boolean temPermissao(String modulo, String acao) {
-        if (this.perfil == null || this.perfil.getPermissoes() == null) {
-            return false;
-        }
+        if (this.perfil == null || this.perfil.getPermissoes() == null) return false;
         return this.perfil.getPermissoes().stream()
                 .anyMatch(p -> p.getModulo().equals(modulo) && p.getAcao().equals(acao));
     }
@@ -130,11 +130,7 @@ public class Usuario extends BaseEntity implements UserDetails {
 
     @PrePersist
     protected void onCreate() {
-        if (getCriadoEm() == null) {
-            setCriadoEm(LocalDateTime.now());
-        }
-        if (this.ativo == null) {
-            this.ativo = true;
-        }
+        if (this.criadoEm == null) this.criadoEm = LocalDateTime.now();
+        if (this.ativo == null) this.ativo = true;
     }
 }
