@@ -59,39 +59,44 @@ public class UsuarioService {
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
     }
 
+    //BUSCAR USUARIO POR EMAIL
     @Transactional(readOnly = true)
     public Optional<Usuario> buscarPorEmail(String email) {
         return usuarioRepository.findByEmailIgnoreCase(email);
     }
 
+    //BUSCAR USUARIO COM PERMISSÕES
     @Transactional(readOnly = true)
     public Usuario buscarComPermissoes(Long codigoUsuario) {
         return usuarioRepository.findByIdComPermissoes(codigoUsuario)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
     }
 
-    // LISTAR
+    //LISTAR USUARIOS ATIVOS
     @Transactional(readOnly = true)
     public List<Usuario> listarAtivos() {
         return usuarioRepository.findAllAtivos();
     }
 
+    //LISTAR USUARIOS POR PERFIL
     @Transactional(readOnly = true)
     public List<Usuario> listarPorPerfil(Long codigoPerfil) {
         return usuarioRepository.findByPerfil(codigoPerfil);
     }
 
+    //LISTAR USUARIOS POR STATUS
     @Transactional(readOnly = true)
     public List<Usuario> listarPorStatus(Boolean ativo) {
         return usuarioRepository.findByAtivo(ativo);
     }
 
+    //BUSCAR USUARIOS POR NOME
     @Transactional(readOnly = true)
     public List<Usuario> buscarPorNome(String nome) {
         return usuarioRepository.findByNomeCompletoContainingIgnoreCaseAndExcluidoEmIsNull(nome);
     }
 
-    // EDITAR
+    //EDITAR USUARIO
     @Transactional
     public Usuario editarUsuario(Long codigoUsuario, String nomeCompleto, String email, Long codigoPerfil, Long usuarioLogado) {
         Usuario usuario = buscarPorId(codigoUsuario);
@@ -121,7 +126,7 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    // RESETAR SENHA
+    //RESETAR SENHA DO USUARIO
     @Transactional
     public void resetarSenha(Long codigoUsuario, String novaSenha, Long usuarioLogado) {
         validarSenha(novaSenha);
@@ -134,6 +139,7 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    //ALTERAR SENHA DO USUARIO
     @Transactional
     public void alterarSenha(Long codigoUsuario, String senhaAtual, String novaSenha) {
         validarSenha(novaSenha);
@@ -151,7 +157,7 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
-    // DESATIVAR/ATIVAR
+    //DESATIVAR USUARIO
     @Transactional
     public void desativarUsuario(Long codigoUsuario, Long usuarioLogado) {
         Usuario usuario = buscarPorId(codigoUsuario);
@@ -161,6 +167,7 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    //ATIVAR USUARIO
     @Transactional
     public void ativarUsuario(Long codigoUsuario) {
         Usuario usuario = buscarPorId(codigoUsuario);
@@ -168,7 +175,7 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
-    // HISTÓRICO DE ACESSO
+    // REGISTRAR ACESSO SUCCESSO
     @Transactional
     public void registrarAcessoSucesso(String email, String ip, String userAgent) {
         Usuario usuario = buscarPorEmail(email)
@@ -181,6 +188,7 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
+    //REGISTRAR ACESSO FALHO
     @Transactional
     public void registrarAcessoFalha(String email, String ip, String userAgent, String motivo) {
         Optional<Usuario> usuarioOpt = buscarPorEmail(email);
@@ -192,18 +200,20 @@ public class UsuarioService {
         }
     }
 
+    //LISTAR HISTÓRICO DE ACESSO    
     @Transactional(readOnly = true)
     public List<HistoricoAcesso> listarHistoricoAcesso(Long codigoUsuario) {
         return historicoAcessoRepository
                 .findTop10ByUsuario_CodigoUsuarioOrderByDataHoraAcessoDesc(codigoUsuario);
     }
 
+    //LISTAR ACESSOS FALHOS
     @Transactional(readOnly = true)
     public List<HistoricoAcesso> listarAcessosFalhos() {
         return historicoAcessoRepository.findBySucessoFalseOrderByDataHoraAcessoDesc();
     }
 
-    // VALIDAÇÕES
+    //VALIDAÇÕES
     private void validarCamposObrigatorios(String nomeCompleto, String email,
                                            String senha, Long codigoPerfil) {
         if (nomeCompleto == null || nomeCompleto.trim().isBlank()) {
@@ -226,7 +236,7 @@ public class UsuarioService {
         }
     }
 
-    // VERIFICAÇÕES
+    //VERIFICAÇÕES
     @Transactional(readOnly = true)
     public boolean podeLogar(String email) {
         return buscarPorEmail(email)
@@ -234,6 +244,7 @@ public class UsuarioService {
                 .orElse(false);
     }
 
+    //VERIFICAR SENHA
     @Transactional(readOnly = true)
     public boolean verificarSenha(String email, String senha) {
         return buscarPorEmail(email)

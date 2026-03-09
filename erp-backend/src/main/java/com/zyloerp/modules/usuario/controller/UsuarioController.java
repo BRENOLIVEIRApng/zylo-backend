@@ -21,6 +21,7 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
 
+    //CRIAR USUARIO
     @PostMapping
     @PreAuthorize("hasAuthority('USUARIOS:CRIAR')")
     public ResponseEntity<UsuarioResponseDTO> criar(@Valid @RequestBody UsuarioRequestDTO dto) {
@@ -34,6 +35,7 @@ public class UsuarioController {
                 .body(UsuarioResponseDTO.fromEntity(usuario));
     }
 
+    //LISTAR USUARIOS
     @GetMapping
     @PreAuthorize("hasAuthority('USUARIOS:VER')")
     public ResponseEntity<List<UsuarioResponseDTO>> listarTodos() {
@@ -44,6 +46,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarios);
     }
 
+    //BUSCAR USUARIO POR ID
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('USUARIOS:VER')")
     public ResponseEntity<UsuarioResponseDTO> buscarPorId(@PathVariable Long id) {
@@ -51,6 +54,7 @@ public class UsuarioController {
         return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
     }
 
+    //LISTAR USUARIOS POR PERFIL
     @GetMapping("/perfil/{codigoPerfil}")
     @PreAuthorize("hasAuthority('USUARIOS:VER')")
     public ResponseEntity<List<UsuarioResponseDTO>> listarPorPerfil(@PathVariable Long codigoPerfil) {
@@ -61,6 +65,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarios);
     }
 
+    //LISTAR USUARIOS POR STATUS
     @GetMapping("/status/{ativo}")
     @PreAuthorize("hasAuthority('USUARIOS:VER')")
     public ResponseEntity<List<UsuarioResponseDTO>> listarPorStatus(@PathVariable Boolean ativo) {
@@ -71,6 +76,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarios);
     }
 
+    //EDITAR USUARIO
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('USUARIOS:EDITAR')")
     public ResponseEntity<UsuarioResponseDTO> editar(
@@ -88,6 +94,7 @@ public class UsuarioController {
         return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
     }
 
+    //DESATIVAR USUARIO
     @PatchMapping("/{id}/desativar")
     @PreAuthorize("hasAuthority('USUARIOS:EXCLUIR')")
     public ResponseEntity<Void> desativar(
@@ -98,6 +105,7 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+    //ATIVAR USUARIO
     @PatchMapping("/{id}/ativar")
     @PreAuthorize("hasAuthority('USUARIOS:EDITAR')")
     public ResponseEntity<Void> ativar(@PathVariable Long id) {
@@ -105,6 +113,7 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+    //RESETAR SENHA DO USUARIO
     @PatchMapping("/{id}/resetar-senha")
     @PreAuthorize("hasAuthority('USUARIOS:EDITAR')")
     public ResponseEntity<Void> resetarSenha(
@@ -116,6 +125,7 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+    //ALTERAR SENHA DO USUARIO
     @PatchMapping("/alterar-senha")
     public ResponseEntity<Void> alterarSenha(
             @Valid @RequestBody AlterarSenhaDTO dto,
@@ -129,6 +139,7 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
+    //BUSCAR USUARIO LOGADO
     @GetMapping("/me")
     public ResponseEntity<UsuarioResponseDTO> me(@AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));

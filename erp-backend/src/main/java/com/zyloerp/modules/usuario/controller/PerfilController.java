@@ -20,6 +20,7 @@ public class PerfilController {
 
     private final PerfilService perfilService;
 
+    //CRIAR PERFIL
     @PostMapping
     @PreAuthorize("hasAuthority('USUARIOS:CRIAR')")
     public ResponseEntity<PerfilResponseDTO> criar(@Valid @RequestBody PerfilRequestDTO dto) {
@@ -32,6 +33,7 @@ public class PerfilController {
                 .body(PerfilResponseDTO.fromEntity(perfil));
     }
 
+    //LISTAR PERFIS
     @GetMapping
     @PreAuthorize("hasAuthority('USUARIOS:VER')")
     public ResponseEntity<List<PerfilResponseDTO>> listarTodos() {
@@ -42,6 +44,7 @@ public class PerfilController {
         return ResponseEntity.ok(perfis);
     }
 
+    //LISTAR PERFIS PERSONALIZADOS
     @GetMapping("/personalizados")
     @PreAuthorize("hasAuthority('USUARIOS:VER')")
     public ResponseEntity<List<PerfilResponseDTO>> listarPersonalizados() {
@@ -52,6 +55,7 @@ public class PerfilController {
         return ResponseEntity.ok(perfis);
     }
 
+    //LISTAR PERFIS DO SISTEMA
     @GetMapping("/sistema")
     @PreAuthorize("hasAuthority('USUARIOS:VER')")
     public ResponseEntity<List<PerfilResponseDTO>> listarSistema() {
@@ -62,6 +66,7 @@ public class PerfilController {
         return ResponseEntity.ok(perfis);
     }
 
+    //BUSCAR PERFIL POR ID
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('USUARIOS:VER')")
     public ResponseEntity<PerfilResponseDTO> buscarPorId(@PathVariable Long id) {
@@ -69,6 +74,7 @@ public class PerfilController {
         return ResponseEntity.ok(PerfilResponseDTO.fromEntity(perfil));
     }
 
+    //EDITAR PERFIL
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('USUARIOS:EDITAR')")
     public ResponseEntity<PerfilResponseDTO> editar(
@@ -83,6 +89,7 @@ public class PerfilController {
         return ResponseEntity.ok(PerfilResponseDTO.fromEntity(perfil));
     }
 
+    //EXCLUIR PERFIL
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('USUARIOS:EXCLUIR')")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {
@@ -90,6 +97,7 @@ public class PerfilController {
         return ResponseEntity.noContent().build();
     }
 
+    //ADICIONAR PERMISSÃO AO PERFIL
     @PostMapping("/{id}/permissoes/{codigoPermissao}")
     @PreAuthorize("hasAuthority('USUARIOS:EDITAR')")
     public ResponseEntity<Void> adicionarPermissao(
@@ -100,6 +108,7 @@ public class PerfilController {
         return ResponseEntity.noContent().build();
     }
 
+    //REMOVER PERMISSÃO DO PERFIL
     @DeleteMapping("/{id}/permissoes/{codigoPermissao}")
     @PreAuthorize("hasAuthority('USUARIOS:EDITAR')")
     public ResponseEntity<Void> removerPermissao(
@@ -110,6 +119,7 @@ public class PerfilController {
         return ResponseEntity.noContent().build();
     }
 
+    //SINCRONIZAR PERMISSÕES DO PERFIL
     @PutMapping("/{id}/permissoes")
     @PreAuthorize("hasAuthority('USUARIOS:EDITAR')")
     public ResponseEntity<Void> sincronizarPermissoes(
@@ -120,6 +130,7 @@ public class PerfilController {
         return ResponseEntity.noContent().build();
     }
 
+    //LISTAR PERMISSÕES DO PERFIL
     @GetMapping("/{id}/permissoes")
     @PreAuthorize("hasAuthority('USUARIOS:VER')")
     public ResponseEntity<List<PermissaoResponseDTO>> listarPermissoes(@PathVariable Long id) {

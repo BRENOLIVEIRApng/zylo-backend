@@ -48,19 +48,21 @@ public class PerfilService {
         return perfilRepository.save(perfil);
     }
 
-    // BUSCAR
+    //BUSCAR PERFIL POR ID
     @Transactional(readOnly = true)
     public Perfil buscarPorId(Long codigoPerfil) {
         return perfilRepository.findById(codigoPerfil)
                 .orElseThrow(() -> new PerfilNaoEncontradoException("Perfil não encontrado"));
     }
 
+    //BUSCAR PERFIL POR NOME
     @Transactional(readOnly = true)
     public Perfil buscarPorNome(String nomePerfil) {
         return perfilRepository.findByNomePerfil(nomePerfil)
                 .orElseThrow(() -> new PerfilNaoEncontradoException("Perfil não encontrado"));
     }
 
+    //BUSCAR PERFIL COM PERMISSÕES
     @Transactional(readOnly = true)
     public Perfil buscarComPermissoes(Long codigoPerfil) {
         Perfil perfil = buscarPorId(codigoPerfil);
@@ -68,7 +70,7 @@ public class PerfilService {
         return perfil;
     }
 
-    // LISTAR
+    //LISTAR TODOS OS PERFIS
     @Transactional(readOnly = true)
     public List<Perfil> listarTodos() {
         return perfilRepository.findAll();
@@ -113,7 +115,7 @@ public class PerfilService {
         return perfilRepository.save(perfil);
     }
 
-    // GERENCIAR PERMISSÕES
+    //GERENCIAR PERMISSÕES
     @Transactional
     public void adicionarPermissao(Long codigoPerfil, Long codigoPermissao) {
         Perfil perfil = buscarPorId(codigoPerfil);
@@ -129,6 +131,7 @@ public class PerfilService {
         perfilRepository.save(perfil);
     }
 
+    //REMOVER PERMISSÃO
     @Transactional
     public void removerPermissao(Long codigoPerfil, Long codigoPermissao) {
         Perfil perfil = buscarPorId(codigoPerfil);
@@ -144,6 +147,7 @@ public class PerfilService {
         perfilRepository.save(perfil);
     }
 
+    //SINCRONIZAR PERMISSÕES
     @Transactional
     public void sincronizarPermissoes(Long codigoPerfil, Set<Long> permissoesIds) {
         Perfil perfil = buscarPorId(codigoPerfil);
@@ -162,7 +166,7 @@ public class PerfilService {
         perfilRepository.save(perfil);
     }
 
-    // EXCLUIR
+    //EXCLUIR PERFIL
     @Transactional
     public void excluirPerfil(Long codigoPerfil) {
         Perfil perfil = buscarPorId(codigoPerfil);
@@ -174,7 +178,7 @@ public class PerfilService {
         perfilRepository.delete(perfil);
     }
 
-    // VERIFICAÇÕES
+    //VERIFICAÇÕES
     @Transactional(readOnly = true)
     public boolean temPermissao(Long codigoPerfil, String modulo, String acao) {
         Perfil perfil = buscarComPermissoes(codigoPerfil);
@@ -182,6 +186,7 @@ public class PerfilService {
                 .anyMatch(p -> p.getModulo().equals(modulo) && p.getAcao().equals(acao));
     }
 
+    //VERIFICAR SE PERFIL EXISTE
     @Transactional(readOnly = true)
     public boolean perfilExiste(String nomePerfil) {
         return perfilRepository.existsByNomePerfil(nomePerfil);
