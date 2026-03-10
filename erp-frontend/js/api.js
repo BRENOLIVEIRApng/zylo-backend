@@ -1,163 +1,91 @@
-// ─── Zylo ERP — API Client ────────────────────────────────────────────────────
-// Centraliza todas as chamadas HTTP ao backend.
-// Injeta o token JWT automaticamente em todos os requests autenticados.
+/* ─── Zylo ERP · api.js ─────────────────────────────────────────────────────
+   Registro de endpoints por módulo.
+   Depende de: auth.js + main.js (ZyloAuth + ZyloHttp)
+   Carregar APÓS auth.js e main.js nas páginas protegidas.
+────────────────────────────────────────────────────────────────────────────── */
 
-const API_URL = 'http://localhost:8080/api'; // trocar pela URL de produção no deploy
+const ZyloAPI = (() => {
 
-// ─── Token helpers ────────────────────────────────────────────────────────────
+  // ─── Usuários ─────────────────────────────────────────────────────────────
+  const Usuarios = {
+    listar:       ()         => ZyloHttp.get('/api/usuarios'),
+    buscarPorId:  (id)       => ZyloHttp.get(`/api/usuarios/${id}`),
+    me:           ()         => ZyloHttp.get('/api/usuarios/me'),
+    criar:        (dto)      => ZyloHttp.post('/api/usuarios', dto),
+    editar:       (id, dto)  => ZyloHttp.put(`/api/usuarios/${id}`, dto),
+    desativar:    (id)       => ZyloHttp.patch(`/api/usuarios/${id}/desativar`),
+    ativar:       (id)       => ZyloHttp.patch(`/api/usuarios/${id}/ativar`),
+    resetarSenha: (id, novaSenha)            => ZyloHttp.patch(`/api/usuarios/${id}/resetar-senha`, { novaSenha }),
+    alterarSenha: (senhaAtual, novaSenha)    => ZyloHttp.patch('/api/usuarios/alterar-senha', { senhaAtual, novaSenha }),
+    listarPorPerfil: (codigoPerfil)          => ZyloHttp.get(`/api/usuarios/perfil/${codigoPerfil}`),
+    listarPorStatus: (ativo)                 => ZyloHttp.get(`/api/usuarios/status/${ativo}`)
+  };
 
-const TOKEN_KEY = 'zylo_token';
-const USUARIO_KEY = 'zylo_usuario';
+  // ─── Perfis ───────────────────────────────────────────────────────────────
+  const Perfis = {
+    listar:              ()          => ZyloHttp.get('/api/perfis'),
+    listarSistema:       ()          => ZyloHttp.get('/api/perfis/sistema'),
+    listarPersonalizados:()          => ZyloHttp.get('/api/perfis/personalizados'),
+    buscarPorId:         (id)        => ZyloHttp.get(`/api/perfis/${id}`),
+    listarPermissoes:    (id)        => ZyloHttp.get(`/api/perfis/${id}/permissoes`),
+    criar:               (dto)       => ZyloHttp.post('/api/perfis', dto),
+    editar:              (id, dto)   => ZyloHttp.put(`/api/perfis/${id}`, dto),
+    excluir:             (id)        => ZyloHttp.delete(`/api/perfis/${id}`),
+    sincronizarPermissoes:(id, ids)  => ZyloHttp.put(`/api/perfis/${id}/permissoes`, { permissoesIds: ids }),
+    adicionarPermissao:  (id, codPerm) => ZyloHttp.post(`/api/perfis/${id}/permissoes/${codPerm}`),
+    removerPermissao:    (id, codPerm) => ZyloHttp.delete(`/api/perfis/${id}/permissoes/${codPerm}`)
+  };
 
-export const Auth = {
-    salvarToken: (token) => localStorage.setItem(TOKEN_KEY, token),
-    obterToken: () => localStorage.getItem(TOKEN_KEY),
-    removerToken: () => {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USUARIO_KEY);
-    },
-    estaLogado: () => !!localStorage.getItem(TOKEN_KEY),
+  // ─── Módulos futuros (esqueleto) ──────────────────────────────────────────
+  // Os endpoints abaixo serão implementados conforme o backend avançar.
 
-    salvarUsuario: (usuario) => localStorage.setItem(USUARIO_KEY, JSON.stringify(usuario)),
-    obterUsuario: () => {
-        const u = localStorage.getItem(USUARIO_KEY);
-        return u ? JSON.parse(u) : null;
-    },
+  const Clientes = {
+    listar:      ()        => ZyloHttp.get('/api/clientes'),
+    buscarPorId: (id)      => ZyloHttp.get(`/api/clientes/${id}`),
+    criar:       (dto)     => ZyloHttp.post('/api/clientes', dto),
+    editar:      (id, dto) => ZyloHttp.put(`/api/clientes/${id}`, dto),
+    desativar:   (id)      => ZyloHttp.patch(`/api/clientes/${id}/desativar`)
+  };
 
-    // Decodifica o payload do JWT sem biblioteca (apenas leitura, não valida assinatura)
-    decodificarToken: () => {
-        const token = Auth.obterToken();
-        if (!token) return null;
-        try {
-            const payload = token.split('.')[1];
-            return JSON.parse(atob(payload));
-        } catch {
-            return null;
-        }
-    },
+  const Contratos = {
+    listar:      ()        => ZyloHttp.get('/api/contratos'),
+    buscarPorId: (id)      => ZyloHttp.get(`/api/contratos/${id}`),
+    criar:       (dto)     => ZyloHttp.post('/api/contratos', dto),
+    editar:      (id, dto) => ZyloHttp.put(`/api/contratos/${id}`, dto),
+    suspender:   (id, dto) => ZyloHttp.patch(`/api/contratos/${id}/suspender`, dto),
+    cancelar:    (id, dto) => ZyloHttp.patch(`/api/contratos/${id}/cancelar`, dto)
+  };
 
-    tokenExpirado: () => {
-        const claims = Auth.decodificarToken();
-        if (!claims) return true;
-        return Date.now() >= claims.exp * 1000;
-    }
-};
+  const Servicos = {
+    listar:      ()        => ZyloHttp.get('/api/servicos'),
+    buscarPorId: (id)      => ZyloHttp.get(`/api/servicos/${id}`),
+    criar:       (dto)     => ZyloHttp.post('/api/servicos', dto),
+    editar:      (id, dto) => ZyloHttp.put(`/api/servicos/${id}`, dto)
+  };
 
-// ─── HTTP Client ──────────────────────────────────────────────────────────────
+  const OrdensServico = {
+    listar:       ()            => ZyloHttp.get('/api/ordens-servico'),
+    buscarPorId:  (id)          => ZyloHttp.get(`/api/ordens-servico/${id}`),
+    criar:        (dto)         => ZyloHttp.post('/api/ordens-servico', dto),
+    editar:       (id, dto)     => ZyloHttp.put(`/api/ordens-servico/${id}`, dto),
+    mudarStatus:  (id, dto)     => ZyloHttp.patch(`/api/ordens-servico/${id}/status`, dto),
+    atribuir:     (id, usuId)   => ZyloHttp.patch(`/api/ordens-servico/${id}/responsavel`, { codigoUsuario: usuId }),
+    comentar:     (id, texto)   => ZyloHttp.post(`/api/ordens-servico/${id}/comentarios`, { texto }),
+    finalizar:    (id, dto)     => ZyloHttp.patch(`/api/ordens-servico/${id}/finalizar`, dto)
+  };
 
-async function request(method, endpoint, body = null, auth = true) {
-    // Redireciona para login se token expirado
-    if (auth && Auth.tokenExpirado()) {
-        Auth.removerToken();
-        window.location.href = '/pages/login.html';
-        return;
-    }
+  const Faturamento = {
+    listar:           ()        => ZyloHttp.get('/api/faturas'),
+    buscarPorId:      (id)      => ZyloHttp.get(`/api/faturas/${id}`),
+    criar:            (dto)     => ZyloHttp.post('/api/faturas', dto),
+    marcarPago:       (id, dto) => ZyloHttp.patch(`/api/faturas/${id}/pagar`, dto),
+    cancelar:         (id, dto) => ZyloHttp.patch(`/api/faturas/${id}/cancelar`, dto)
+  };
 
-    const headers = { 'Content-Type': 'application/json' };
+  const Dashboard = {
+    metricas: () => ZyloHttp.get('/api/dashboard/metricas')
+  };
 
-    if (auth) {
-        headers['Authorization'] = `Bearer ${Auth.obterToken()}`;
-    }
+  return { Usuarios, Perfis, Clientes, Contratos, Servicos, OrdensServico, Faturamento, Dashboard };
 
-    const options = { method, headers };
-    if (body) options.body = JSON.stringify(body);
-
-    const response = await fetch(`${API_URL}${endpoint}`, options);
-
-    // Token expirou durante a sessão
-    if (response.status === 401) {
-        Auth.removerToken();
-        window.location.href = '/pages/login.html';
-        return;
-    }
-
-    // Sem conteúdo (204 No Content)
-    if (response.status === 204) return null;
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        // Lança o erro com a mensagem do backend
-        throw new Error(data.erro || data.message || 'Erro desconhecido');
-    }
-
-    return data;
-}
-
-// ─── Auth endpoints ───────────────────────────────────────────────────────────
-
-export const AuthAPI = {
-    login: async (email, senha) => {
-        const data = await request('POST', '/auth/login', { email, senha }, false);
-
-        Auth.salvarToken(data.token);
-        Auth.salvarUsuario(data.usuario);
-
-        return data;
-    },
-
-    logout: () => {
-        Auth.removerToken();
-        window.location.href = '/pages/login.html';
-    },
-
-    me: () => request('GET', '/usuarios/me')
-};
-
-// ─── Usuários endpoints ───────────────────────────────────────────────────────
-
-export const UsuariosAPI = {
-    listar: () => request('GET', '/usuarios'),
-    buscarPorId: (id) => request('GET', `/usuarios/${id}`),
-    criar: (dto) => request('POST', '/usuarios', dto),
-    editar: (id, dto) => request('PUT', `/usuarios/${id}`, dto),
-    desativar: (id) => request('PATCH', `/usuarios/${id}/desativar`),
-    ativar: (id) => request('PATCH', `/usuarios/${id}/ativar`),
-    resetarSenha: (id, novaSenha) => request('PATCH', `/usuarios/${id}/resetar-senha`, { novaSenha }),
-    alterarSenha: (senhaAtual, novaSenha) => request('PATCH', '/usuarios/alterar-senha', { senhaAtual, novaSenha })
-};
-
-// ─── Perfis endpoints ─────────────────────────────────────────────────────────
-
-export const PerfisAPI = {
-    listar: () => request('GET', '/perfis'),
-    listarSistema: () => request('GET', '/perfis/sistema'),
-    buscarPorId: (id) => request('GET', `/perfis/${id}`),
-    criar: (dto) => request('POST', '/perfis', dto),
-    editar: (id, dto) => request('PUT', `/perfis/${id}`, dto),
-    excluir: (id) => request('DELETE', `/perfis/${id}`),
-    sincronizarPermissoes: (id, permissoesIds) =>
-        request('PUT', `/perfis/${id}/permissoes`, { permissoesIds })
-};
-
-// ─── Helpers de UI ────────────────────────────────────────────────────────────
-
-export function mostrarErro(mensagem, containerId = 'erro-container') {
-    const el = document.getElementById(containerId);
-    if (el) {
-        el.textContent = mensagem;
-        el.style.display = 'block';
-    }
-}
-
-export function ocultarErro(containerId = 'erro-container') {
-    const el = document.getElementById(containerId);
-    if (el) el.style.display = 'none';
-}
-
-export function mostrarLoading(btnId, texto = 'Aguarde...') {
-    const btn = document.getElementById(btnId);
-    if (btn) {
-        btn.disabled = true;
-        btn.dataset.textoOriginal = btn.textContent;
-        btn.textContent = texto;
-    }
-}
-
-export function pararLoading(btnId) {
-    const btn = document.getElementById(btnId);
-    if (btn) {
-        btn.disabled = false;
-        btn.textContent = btn.dataset.textoOriginal || 'Confirmar';
-    }
-}
+})();

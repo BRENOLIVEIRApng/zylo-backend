@@ -1,4 +1,7 @@
-/* ─── Zylo ERP · main.js ────────────────────────────────────────────────────── */
+/* ─── Zylo ERP · main.js ────────────────────────────────────────────────────
+   Carregado em TODAS as páginas protegidas (após auth.js).
+   Fornece: ZyloHttp, ZyloFormat e inicialização do layout.
+────────────────────────────────────────────────────────────────────────────── */
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -43,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ─── Nav link active state ────────────────────────────────────────────────
+  // ─── Nav link active state ─────────────────────────────────────────────────
   const currentPage = window.location.pathname.split('/').pop();
   document.querySelectorAll('.nav-link[data-page]').forEach(link => {
     if (link.dataset.page === currentPage) link.classList.add('active');
@@ -56,10 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 });
 
-/* ─── HTTP Helper ────────────────────────────────────────────────────────────── */
+/* ─── HTTP Client ─────────────────────────────────────────────────────────────
+   Wrapper do fetch com injeção automática de token JWT.
+   Uso: ZyloHttp.get('/api/endpoint')
+────────────────────────────────────────────────────────────────────────────── */
 const ZyloHttp = (() => {
 
-  const BASE = 'http://localhost:8080'; // --Substituir pela URL de produção
+  const BASE = 'http://localhost:8080'; // Substituir pela URL de produção
 
   const request = async (method, endpoint, body) => {
     const res = await fetch(`${BASE}${endpoint}`, {
@@ -68,29 +74,40 @@ const ZyloHttp = (() => {
       ...(body !== undefined ? { body: JSON.stringify(body) } : {})
     });
 
-    if (res.status === 401) { ZyloAuth.logout(); return; }
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status}`);
+    if (res.status === 401) {
+      ZyloAuth.logout();
+      return;
     }
 
-    return res.json().catch(() => null);
+    // Sem conteúdo (DELETE, PATCH sem body)
+    if (res.status === 204) return null;
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      throw new Error(data?.mensagem || data?.message || `HTTP ${res.status}`);
+    }
+
+    return data;
   };
 
   return {
-    get:    (ep)        => request('GET',    ep),
-    post:   (ep, body)  => request('POST',   ep, body),
-    put:    (ep, body)  => request('PUT',    ep, body),
-    patch:  (ep, body)  => request('PATCH',  ep, body ?? {}),
-    delete: (ep)        => request('DELETE', ep)
+    get:    (ep)       => request('GET',    ep),
+    post:   (ep, body) => request('POST',   ep, body),
+    put:    (ep, body) => request('PUT',    ep, body),
+    patch:  (ep, body) => request('PATCH',  ep, body ?? {}),
+    delete: (ep)       => request('DELETE', ep)
   };
+
 })();
 
-/* ─── Formatadores ───────────────────────────────────────────────────────────── */
+/* ─── Formatadores ────────────────────────────────────────────────────────────
+   Uso: ZyloFormat.moeda(1500) → "R$ 1.500,00"
+────────────────────────────────────────────────────────────────────────────── */
 const ZyloFormat = {
   moeda:    (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0),
-  data:     (v) => v ? new Date(v).toLocaleDateString('pt-BR') : '—',
+  data:     (v) => v ? new Date(v + 'T00:00:00').toLocaleDateString('pt-BR') : '—',
   dataHora: (v) => v ? new Date(v).toLocaleString('pt-BR') : '—',
-  iniciais: (nome) => nome?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?'
+  iniciais: (nome) => nome?.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() || '?',
+  cnpj:     (v) => v?.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') || v
 };
