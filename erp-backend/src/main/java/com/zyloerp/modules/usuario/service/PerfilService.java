@@ -73,17 +73,17 @@ public class PerfilService {
     //LISTAR TODOS OS PERFIS
     @Transactional(readOnly = true)
     public List<Perfil> listarTodos() {
-        return perfilRepository.findAll();
+        return perfilRepository.findAllComPermissoes();
     }
 
     @Transactional(readOnly = true)
     public List<Perfil> listarPerfisSistema() {
-        return perfilRepository.findBySistemaTrue();
+        return perfilRepository.findSistemaComPermissoes();
     }
 
     @Transactional(readOnly = true)
     public List<Perfil> listarPerfisPersonalizados() {
-        return perfilRepository.findBySistemaFalse();
+        return perfilRepository.findPersonalizadosComPermissoes();
     }
 
     @Transactional(readOnly = true)

@@ -21,4 +21,20 @@ public interface PerfilRepository extends JpaRepository<Perfil, Long> {
 
     @Query("SELECT DISTINCT p FROM Perfil p LEFT JOIN FETCH p.permissoes")
     List<Perfil> findAllComPermissoes();
+
+    @Query("""
+SELECT DISTINCT p
+FROM Perfil p
+LEFT JOIN FETCH p.permissoes
+WHERE p.sistema = true
+""")
+    List<Perfil> findSistemaComPermissoes();
+
+    @Query("""
+SELECT DISTINCT p
+FROM Perfil p
+LEFT JOIN FETCH p.permissoes
+WHERE p.sistema = false
+""")
+    List<Perfil> findPersonalizadosComPermissoes();
 }

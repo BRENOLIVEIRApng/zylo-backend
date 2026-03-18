@@ -3,6 +3,9 @@ package com.zyloerp.modules.usuario.controller;
 import com.zyloerp.modules.usuario.dto.*;
 import com.zyloerp.modules.usuario.model.Usuario;
 import com.zyloerp.modules.usuario.service.UsuarioService;
+import com.zyloerp.modules.usuario.dto.HistoricoAcessoResponseDTO;
+import com.zyloerp.modules.usuario.model.HistoricoAcesso;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -143,5 +146,38 @@ public class UsuarioController {
     @GetMapping("/me")
     public ResponseEntity<UsuarioResponseDTO> me(@AuthenticationPrincipal Usuario usuario) {
         return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
+    }
+
+    // --Listar histórico de acessos do usuário (top 10)
+    @GetMapping("/{id}/historico-acessos")
+    @PreAuthorize("hasAuthority('USUARIOS:VER')")
+    public ResponseEntity<List<HistoricoAcessoResponseDTO>> listarHistoricoAcesso(@PathVariable Long id) {
+        List<HistoricoAcesso> historico = usuarioService.listarHistoricoAcesso(id);
+        List<HistoricoAcessoResponseDTO> response = historico.stream()
+                .map(HistoricoAcessoResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    // --Listar todos os acessos falhos (admin)
+    @GetMapping("/historico-acessos/falhos")
+    @PreAuthorize("hasAuthority('USUARIOS:VER')")
+    public ResponseEntity<List<HistoricoAcessoResponseDTO>> listarAcessosFalhos() {
+        List<HistoricoAcesso> historico = usuarioService.listarAcessosFalhos();
+        List<HistoricoAcessoResponseDTO> response = historico.stream()
+                .map(HistoricoAcessoResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
+
+    // --Buscar usuários por nome (busca textual)
+    @GetMapping("/buscar")
+    @PreAuthorize("hasAuthority('USUARIOS:VER')")
+    public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(@RequestParam String nome) {
+        List<UsuarioResponseDTO> usuarios = usuarioService.buscarPorNome(nome)
+                .stream()
+                .map(UsuarioResponseDTO::fromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(usuarios);
     }
 }

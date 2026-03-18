@@ -55,7 +55,7 @@ public class UsuarioService {
     // BUSCAR
     @Transactional(readOnly = true)
     public Usuario buscarPorId(Long codigoUsuario) {
-        return usuarioRepository.findById(codigoUsuario)
+        return usuarioRepository.findByIdComPermissoes(codigoUsuario)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException("Usuário não encontrado"));
     }
 
@@ -75,7 +75,7 @@ public class UsuarioService {
     //LISTAR USUARIOS ATIVOS
     @Transactional(readOnly = true)
     public List<Usuario> listarAtivos() {
-        return usuarioRepository.findAllAtivos();
+        return usuarioRepository.findAllAtivosComPermissoes();
     }
 
     //LISTAR USUARIOS POR PERFIL

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zylo ERP · Usuários</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        /* ── Avatar inline ──────────────────────────────────────────────────── */
+        .usuario-avatar {
+          width: 36px; height: 36px;
+          border-radius: 50%;
+          background: var(--mint);
+          color: var(--text-on-mint);
+          font-weight: 700; font-size: .78rem;
+          display: inline-flex; align-items: center; justify-content: center;
+          flex-shrink: 0;
+        }
+        .usuario-avatar.inativo {
+          background: var(--border-light);
+          color: var(--text-muted);
+        }
+        .usuario-info-cel { display: flex; align-items: center; gap: .75rem; }
+        .usuario-nome     { font-weight: 600; font-size: .875rem; color: var(--text-primary); line-height: 1.2; }
+        .usuario-email    { font-size: .75rem; color: var(--text-muted); }
+
+        /* ── Perfil badge ────────────────────────────────────────────────────── */
+        .perfil-badge {
+          font-size: .7rem; font-weight: 700; padding: .2rem .65rem;
+          border-radius: 20px; display: inline-flex; align-items: center; gap: .3rem;
+          background: rgba(0,255,194,.10); color: var(--mint-dark);
+          border: 1px solid rgba(0,255,194,.2);
+        }
+        .perfil-badge i { font-size: .65rem; }
+
+        /* ── Último acesso ───────────────────────────────────────────────────── */
+        .ultimo-acesso { font-size: .78rem; color: var(--text-muted); }
+
+        /* ── Linha ações ─────────────────────────────────────────────────────── */
+        .acoes-cel { white-space: nowrap; text-align: right; }
+        .acoes-cel .btn { padding: .25rem .5rem; }
+
+        /* ── Filtros toolbar ─────────────────────────────────────────────────── */
+        .toolbar { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+        .toolbar .input-group { max-width: 260px; }
+
+        /* ── Modal content base ──────────────────────────────────────────────── */
+        .modal-content { border-radius: var(--radius-md); border: 1px solid var(--border-light); }
+        .modal-header  { border-bottom: 1px solid var(--border-light); padding: 1.25rem 1.5rem; }
+        .modal-body    { padding: 1.5rem; }
+        .modal-footer  { border-top: 1px solid var(--border-light); padding: 1rem 1.5rem; gap: .5rem; }
+
+        /* ── Senha strength ──────────────────────────────────────────────────── */
+        .senha-strength { display: flex; gap: .25rem; margin-top: .35rem; }
+        .senha-bar {
+          height: 3px; flex: 1; border-radius: 4px;
+          background: var(--border-light); transition: background .3s;
+        }
+        .senha-bar.fraca  { background: var(--accent-danger); }
+        .senha-bar.media  { background: var(--accent-warning); }
+        .senha-bar.forte  { background: var(--accent-success); }
+        .senha-hint { font-size: .72rem; color: var(--text-muted); margin-top: .25rem; }
+    </style>
+</head>
+<body>
+<div class="layout-wrapper">
+
+    <!-- ─── SIDEBAR ──────────────────────────────────────────────────────────── -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+            <div>
+                <div class="sidebar-title">Zylo ERP</div>
+                <div class="sidebar-subtitle">Software House Portal</div>
+            </div>
+        </div>
+
+        <div class="sidebar-nav">
+            <span class="nav-section-label">Principal</span>
+            <div class="nav-item">
+                <a href="../dashboard/home.html" class="nav-link" data-page="home.html">
+                    <span class="nav-icon"><i class="bi bi-house"></i></span>Dashboard
+                </a>
+            </div>
+
+            <span class="nav-section-label">Gestão</span>
+            <div class="nav-item">
+                <a href="../clientes/clientes-lista.html" class="nav-link" data-page="clientes-lista.html">
+                    <span class="nav-icon"><i class="bi bi-buildings"></i></span>Clientes
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="../contratos/contratos-lista.html" class="nav-link" data-page="contratos-lista.html">
+                    <span class="nav-icon"><i class="bi bi-file-earmark-text"></i></span>Contratos
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="../servicos/servicos-lista.html" class="nav-link" data-page="servicos-lista.html">
+                    <span class="nav-icon"><i class="bi bi-gear"></i></span>Serviços
+                </a>
+            </div>
+
+            <span class="nav-section-label">Operações</span>
+            <div class="nav-item">
+                <a href="../ordens-servico/os-kanban.html" class="nav-link" data-page="os-kanban.html">
+                    <span class="nav-icon"><i class="bi bi-kanban"></i></span>Ordens de Serviço
+                </a>
+            </div>
+
+            <span class="nav-section-label">Financeiro</span>
+            <div class="nav-item">
+                <a href="../faturamento/faturas-lista.html" class="nav-link" data-page="faturas-lista.html">
+                    <span class="nav-icon"><i class="bi bi-receipt"></i></span>Faturamento
+                </a>
+            </div>
+
+            <span class="nav-section-label">Administração</span>
+            <div class="nav-item">
+                <a href="usuarios-lista.html" class="nav-link active" data-page="usuarios-lista.html">
+                    <span class="nav-icon"><i class="bi bi-people"></i></span>Usuários
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="perfis-lista.html" class="nav-link" data-page="perfis-lista.html">
+                    <span class="nav-icon"><i class="bi bi-shield-lock"></i></span>Perfis e Permissões
+                </a>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-card">
+                <div class="user-avatar" data-user-iniciais>?</div>
+                <div class="user-info">
+                    <div class="user-name" data-user-nome>Carregando...</div>
+                    <div class="user-role" data-user-perfil></div>
+                </div>
+                <!-- --Logout -->
+                <span class="user-logout" data-action="logout" title="Sair">
+          <i class="bi bi-box-arrow-right"></i>
+        </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ─── MAIN ─────────────────────────────────────────────────────────────── -->
+    <div class="main-content">
+
+        <header class="topbar">
+            <!-- --Toggle sidebar mobile -->
+            <button class="topbar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+            <div class="topbar-breadcrumb">
+                <h3>Usuários</h3>
+                <span>Administração · Gestão de Acesso</span>
+            </div>
+            <div class="topbar-actions">
+                <button class="topbar-icon-btn" title="Notificações"><i class="bi bi-bell"></i></button>
+                <div class="topbar-user">
+                    <div class="topbar-user-avatar" data-user-iniciais>?</div>
+                    <span class="topbar-user-name" data-user-nome>—</span>
+                    <i class="bi bi-chevron-down" style="font-size:.75rem;color:var(--text-muted);"></i>
+                </div>
+            </div>
+        </header>
+
+        <main class="page-content">
+
+            <!-- ── Stat cards ───────────────────────────────────────────────────── -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon mint"><i class="bi bi-people"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Total Ativos</div>
+                            <div class="stat-value" id="statAtivos">—</div>
+                            <div class="stat-delta up" id="statDeltaAtivos" style="display:none;">
+                                <i class="bi bi-arrow-up"></i> <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon warning"><i class="bi bi-person-slash"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Inativos</div>
+                            <div class="stat-value" id="statInativos">—</div>
+                            <div class="stat-delta neutral"><i class="bi bi-dash"></i> desativados</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="bi bi-shield-check"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Perfis em Uso</div>
+                            <div class="stat-value" id="statPerfis">—</div>
+                            <div class="stat-delta neutral"><i class="bi bi-grid-1x2"></i> perfis distintos</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-xl-3">
+                    <div class="stat-card">
+                        <div class="stat-icon mint"><i class="bi bi-clock-history"></i></div>
+                        <div class="stat-info">
+                            <div class="stat-label">Último Acesso</div>
+                            <div class="stat-value" style="font-size:1rem;" id="statUltimoAcesso">—</div>
+                            <div class="stat-delta neutral" id="statUltimoNome" style="font-size:.7rem;">—</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Tabela principal ─────────────────────────────────────────────── -->
+            <div class="card-zylo">
+
+                <!-- Header + toolbar -->
+                <div class="section-header" style="margin-bottom:1rem;">
+                    <div>
+                        <div class="section-title">Usuários do Sistema</div>
+                        <div class="section-subtitle" id="labelTotal">— usuários encontrados</div>
+                    </div>
+                    <!-- --Novo usuário -->
+                    <button class="btn btn-primary" id="btnNovoUsuario">
+                        <i class="bi bi-person-plus"></i> Novo Usuário
+                    </button>
+                </div>
+
+                <!-- Filtros -->
+                <div class="toolbar mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="campoBusca" class="form-control form-control-sm" placeholder="Buscar por nome ou email...">
+                    </div>
+                    <select id="filtroPerfil" class="form-select form-select-sm" style="width:160px;">
+                        <option value="">Todos os perfis</option>
+                    </select>
+                    <select id="filtroStatus" class="form-select form-select-sm" style="width:130px;">
+                        <option value="ativos">Ativos</option>
+                        <option value="inativos">Inativos</option>
+                        <option value="todos">Todos</option>
+                    </select>
+                    <!-- --Limpar filtros -->
+                    <button class="btn btn-outline-secondary btn-sm" id="btnLimparFiltros" title="Limpar filtros">
+                        <i class="bi bi-x-circle"></i>
+                    </button>
+                </div>
+
+                <!-- Tabela -->
+                <div style="overflow-x:auto;">
+                    <table class="table-zylo">
+                        <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Perfil</th>
+                            <th>Status</th>
+                            <th>Último Acesso</th>
+                            <th>Criado em</th>
+                            <th style="text-align:right;">Ações</th>
+                        </tr>
+                        </thead>
+                        <tbody id="corpoTabela">
+                        <tr id="rowLoading">
+                            <td colspan="6" style="text-align:center;padding:3rem 0;color:var(--text-muted);">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Carregando usuários...
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="alertLista" style="margin-top:1rem;"></div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- ── MODAL: Novo / Editar Usuário ────────────────────────────────────────── -->
+<div class="modal fade" id="modalUsuario" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalUsuarioTitulo">
+                    <i class="bi bi-person-plus me-2" style="color:var(--mint-dark);"></i>Novo Usuário
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formUsuario" novalidate autocomplete="off">
+                    <input type="hidden" id="usuarioId">
+
+                    <div class="mb-3">
+                        <label for="nomeCompleto" class="form-label">
+                            Nome Completo <span style="color:var(--accent-danger);">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" id="nomeCompleto" class="form-control" placeholder="Nome completo do usuário" maxlength="100" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="emailUsuario" class="form-label">
+                            Email <span style="color:var(--accent-danger);">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" id="emailUsuario" class="form-control" placeholder="email@empresa.com" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="grupSenha">
+                        <label for="senhaUsuario" class="form-label">
+                            Senha Inicial <span style="color:var(--accent-danger);">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" id="senhaUsuario" class="form-control" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleSenhaModal">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="senha-strength" id="senhaStrength">
+                            <div class="senha-bar" id="bar1"></div>
+                            <div class="senha-bar" id="bar2"></div>
+                            <div class="senha-bar" id="bar3"></div>
+                        </div>
+                        <div class="senha-hint" id="senhaHint">Mínimo 8 caracteres</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="perfilUsuario" class="form-label">
+                            Perfil de Acesso <span style="color:var(--accent-danger);">*</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-shield"></i></span>
+                            <select id="perfilUsuario" class="form-select" required>
+                                <option value="">Selecione o perfil...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="alertModal"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </button>
+                <!-- --Salvar usuário -->
+                <button type="button" class="btn btn-primary" id="btnSalvarUsuario">
+                    <i class="bi bi-floppy"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL: Resetar Senha ─────────────────────────────────────────────────── -->
+<div class="modal fade" id="modalResetarSenha" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-key me-2" style="color:var(--accent-warning);"></i>Resetar Senha
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:.875rem;color:var(--text-secondary);margin-bottom:1rem;">
+                    Definindo nova senha para <strong id="nomeResetarSenha"></strong>.
+                </p>
+                <div class="mb-3">
+                    <label for="novaSenhaReset" class="form-label">
+                        Nova Senha <span style="color:var(--accent-danger);">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" id="novaSenhaReset" class="form-control" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+                        <button class="btn btn-outline-secondary" type="button" id="toggleSenhaReset">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <div class="senha-strength">
+                        <div class="senha-bar" id="rbar1"></div>
+                        <div class="senha-bar" id="rbar2"></div>
+                        <div class="senha-bar" id="rbar3"></div>
+                    </div>
+                    <div class="senha-hint" id="resetSenhaHint">Mínimo 8 caracteres</div>
+                </div>
+                <div id="alertReset"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </button>
+                <!-- --Confirmar reset -->
+                <button type="button" class="btn btn-primary" id="btnConfirmarReset">
+                    <i class="bi bi-check-lg"></i> Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL: Confirmar Desativar ───────────────────────────────────────────── -->
+<div class="modal fade" id="modalDesativar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle me-2" style="color:var(--accent-warning);"></i>
+                    Desativar Usuário
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:.875rem;color:var(--text-secondary);margin:0;">
+                    Tem certeza que deseja desativar o usuário <strong id="nomeDesativar"></strong>?
+                </p>
+                <div class="zylo-alert info" style="margin-top:.75rem;">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>O usuário não conseguirá acessar o sistema. A operação pode ser revertida.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-sm" id="btnConfirmarDesativar"
+                        style="background:var(--accent-danger);border-color:var(--accent-danger);color:#fff;font-weight:700;">
+                    <i class="bi bi-person-slash"></i> Desativar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../../js/core/auth.js"></script>
+<script src="../../js/core/main.js"></script>
+<script src="../../js/modules/usuarios.js"></script>
+<script>
+    // --Proteger rota
+    ZyloAuth.requireAuth();
+    // --Inicializar módulo
+    ZyloUsuarios.Events.initLista();
+</script>
+</body>
+</html>
