@@ -1,19 +1,18 @@
 /* ─── Zylo ERP · topbar.js ──────────────────────────────────────────────────
    Topbar com breadcrumb dinâmico e dropdown do usuário.
-   Dropdown controlado via classe .open (JS) — não depende de CSS hover.
    Depende de: auth.js, utils.js (ZyloAuth, ZyloFormat)
 ────────────────────────────────────────────────────────────────────────────── */
 
 const ZyloTopbar = (() => {
 
-  // --Renderizar topbar no #topbar
   const render = ({ title = '', subtitle = '' } = {}) => {
     const mountPoint = document.getElementById('topbar');
     if (!mountPoint) return;
 
-    const usuario = ZyloAuth.getUsuario();
-    const iniciais = ZyloFormat.iniciais(usuario?.nomeCompleto || '');
+    const usuario      = ZyloAuth.getUsuario();
+    const iniciais     = ZyloFormat.iniciais(usuario?.nomeCompleto || '');
     const primeiroNome = usuario?.nomeCompleto?.split(' ')[0] || '—';
+    const base         = ZyloAuth.baseUrl;
 
     mountPoint.innerHTML = `
       <!-- --Toggle sidebar mobile -->
@@ -27,10 +26,9 @@ const ZyloTopbar = (() => {
         <span id="topbarSubtitle">${subtitle}</span>
       </div>
 
-      <!-- --Ações da topbar -->
+      <!-- --Ações -->
       <div class="topbar-actions">
 
-        <!-- --Notificações -->
         <button class="topbar-icon-btn" title="Notificações">
           <i class="bi bi-bell"></i>
         </button>
@@ -58,11 +56,11 @@ const ZyloTopbar = (() => {
 
             <div class="dropdown-divider"></div>
 
-            <a href="/pages/admin/usuarios-detalhe.html?id=${usuario?.codigoUsuario || ''}"
+            <a href="${base}/pages/admin/usuarios-detalhe.html?id=${usuario?.codigoUsuario || ''}"
                class="dropdown-item" role="menuitem">
               <i class="bi bi-person-circle"></i> Minha Conta
             </a>
-            <a href="/pages/admin/usuarios-detalhe.html?id=${usuario?.codigoUsuario || ''}#senha"
+            <a href="${base}/pages/admin/usuarios-detalhe.html?id=${usuario?.codigoUsuario || ''}#senha"
                class="dropdown-item" role="menuitem">
               <i class="bi bi-key"></i> Alterar Senha
             </a>
@@ -82,7 +80,6 @@ const ZyloTopbar = (() => {
     _bindEvents(mountPoint);
   };
 
-  // --Atualizar título e subtítulo após render
   const setTitle = (title, subtitle = '') => {
     const t = document.getElementById('topbarTitle');
     const s = document.getElementById('topbarSubtitle');
@@ -93,10 +90,9 @@ const ZyloTopbar = (() => {
   const _bindEvents = (topbar) => {
     const btn  = topbar.querySelector('#topbarUserBtn');
     const wrap = topbar.querySelector('#topbarUserWrap');
-
     if (!btn || !wrap) return;
 
-    // --Abrir/fechar dropdown ao clicar no botão
+    // --Toggle dropdown
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const open = wrap.classList.toggle('open');

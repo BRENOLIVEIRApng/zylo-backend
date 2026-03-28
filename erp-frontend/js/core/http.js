@@ -1,22 +1,31 @@
 /* ─── Zylo ERP · http.js ────────────────────────────────────────────────────
    Cliente HTTP com injeção automática de token JWT.
    Depende de: auth.js (ZyloAuth)
-   Uso: ZyloHttp.get('/api/endpoint')
 ────────────────────────────────────────────────────────────────────────────── */
 
 const ZyloHttp = (() => {
 
-  const BASE = 'http://localhost:8080'; // --Substituir pela URL de produção
+  // --URL do backend Spring Boot (NUNCA a porta do servidor de arquivos)
+  const BASE = 'http://localhost:8080';
 
   const request = async (method, endpoint, body) => {
-    const res = await fetch(`${BASE}${endpoint}`, {
-      method,
-      headers: ZyloAuth.authHeaders(),
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {})
-    });
+    let res;
+    try {
+      res = await fetch(`${BASE}${endpoint}`, {
+        method,
+        headers: ZyloAuth.authHeaders(),
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {})
+      });
+    } catch (networkErr) {
+      // --Erro de rede (servidor offline, CORS etc.)
+      throw new Error('Não foi possível conectar ao servidor. Verifique se o backend está rodando.');
+    }
 
     // --Sessão expirada
-    if (res.status === 401) { ZyloAuth.logout(); return; }
+    if (res.status === 401) {
+      ZyloAuth.logout();
+      return;
+    }
 
     // --Sem conteúdo (204 — DELETE, PATCH sem retorno)
     if (res.status === 204) return null;
@@ -24,7 +33,7 @@ const ZyloHttp = (() => {
     const data = await res.json().catch(() => null);
 
     if (!res.ok) {
-      throw new Error(data?.mensagem || data?.message || `HTTP ${res.status}`);
+      throw new Error(data?.mensagem || data?.message || `Erro ${res.status}`);
     }
 
     return data;
